@@ -14,11 +14,12 @@ jobs:
           submodules: recursive
 
       # avr-gcc 4.3.5 / avr-libc 1.6.8 (Debian Squeeze i386, digest-pinned):
-      # newer compilers miscompile the oscillator code.
+      # newer compilers miscompile the oscillator code. --network host: the
+      # runner's DNS stub (127.0.0.53) isn't reachable from a bridged build.
       - name: Build toolchain image
         run: >
-          docker build --platform linux/386 -t ambika-squeeze:4.3.5
-          -f toolchain/Dockerfile.squeeze-i386 toolchain
+          docker build --network host --platform linux/386
+          -t ambika-squeeze:4.3.5 -f toolchain/Dockerfile.squeeze-i386 toolchain
 
       - name: Check generated resources
         run: bash toolchain/avr-resources.sh . shruthi/makefile check
