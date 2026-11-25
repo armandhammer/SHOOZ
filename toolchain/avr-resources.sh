@@ -13,11 +13,18 @@ IMAGE="${AVR_IMAGE:-ambika-squeeze:4.3.5}"
 HERE="$(cd "$(dirname "$0")" && { pwd -W 2>/dev/null || pwd; })"
 TREE_ABS="$(cd "$TREE" && { pwd -W 2>/dev/null || pwd; })"
 
+# On Linux, run as the calling user (see avr-make.sh).
+USER_OPT=()
+if [ "$(uname -s)" = Linux ]; then
+  USER_OPT=(--user "$(id -u):$(id -g)")
+fi
+
 MSYS_NO_PATHCONV=1 exec docker run --rm \
   --platform linux/386 \
   --network none \
   --cap-drop=ALL \
-  --tmpfs /w:exec,size=512m \
+  "${USER_OPT[@]}" \
+  --tmpfs /w:exec,size=512m,mode=1777 \
   -v "$TREE_ABS:/src" \
   -v "$HERE:/toolchain:ro" \
   "$IMAGE" \

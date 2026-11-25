@@ -7,7 +7,7 @@ MAKEFILE="$1"; TARGET="$2"; shift 2
 
 cd /src
 tar cf - --exclude=.git --exclude=hardware_design --exclude=build \
-  --exclude=yam_firmware_builds --exclude=documentation . | (cd /w && tar xf -)
+  --exclude=yam_firmware_builds --exclude=documentation . | (cd /w && tar xf - --no-same-owner)
 cd /w
 
 # Some trees were generated on Windows: '#include "controller\resources.h"'.
