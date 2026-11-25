@@ -14,12 +14,14 @@ jobs:
           submodules: recursive
 
       # avr-gcc 4.3.5 / avr-libc 1.6.8 (Debian Squeeze i386, digest-pinned):
-      # newer compilers miscompile the oscillator code. --network host: the
-      # runner's DNS stub (127.0.0.53) isn't reachable from a bridged build.
+      # newer compilers miscompile the oscillator code. The image's 2011
+      # resolver can't use the runner's DNS, so the archive host is resolved
+      # here and pinned inside the build.
       - name: Build toolchain image
-        run: >
-          docker build --network host --platform linux/386
-          -t ambika-squeeze:4.3.5 -f toolchain/Dockerfile.squeeze-i386 toolchain
+        run: |
+          ip=$(getent ahostsv4 archive.debian.org | awk 'NR==1 {print $1}')
+          echo "archive.debian.org -> $ip"
+          docker build --platform linux/386             --add-host "archive.debian.org:$ip"             -t ambika-squeeze:4.3.5 -f toolchain/Dockerfile.squeeze-i386 toolchain
 
       - name: Check generated resources
         run: bash toolchain/avr-resources.sh . shruthi/makefile check
