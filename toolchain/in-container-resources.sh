@@ -10,8 +10,8 @@ MAKEFILE="$1"; MODE="${2:-check}"
 
 cd /src
 tar cf - --exclude=.git --exclude=hardware_design --exclude=build \
-  --exclude=yam_firmware_builds --exclude=documentation . | (cd /w && tar xf - --no-same-owner)
-cd /w
+  --exclude=yam_firmware_builds --exclude=documentation . | (mkdir -p /w/t && cd /w/t && tar xf - --no-same-owner)
+cd /w/t
 
 RES_DIR="$(sed -n 's/^RESOURCES *= *//p' "$MAKEFILE" | tr -d '\r ' | head -1)"
 OUT_DIR="$(dirname "$RES_DIR")"
