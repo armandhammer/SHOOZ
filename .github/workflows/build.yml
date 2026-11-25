@@ -1,0 +1,37 @@
+name: build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  firmware:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # avr-gcc 4.3.5 / avr-libc 1.6.8 (Debian Squeeze i386, digest-pinned):
+      # newer compilers miscompile the oscillator code.
+      - name: Build toolchain image
+        run: >
+          docker build --platform linux/386 -t ambika-squeeze:4.3.5
+          -f toolchain/Dockerfile.squeeze-i386 toolchain
+
+      - name: Check generated resources
+        run: bash toolchain/avr-resources.sh . shruthi/makefile check
+
+      - name: Build firmware (.hex + .syx)
+        run: bash toolchain/avr-make.sh . shruthi/makefile syx
+
+      - name: Size gates
+        run: bash toolchain/size-report.sh . | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shooz-firmware
+          path: |
+            build/shruthi1/shruthi1.syx
+            build/shruthi1/shruthi1.hex

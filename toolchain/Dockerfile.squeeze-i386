@@ -1,0 +1,31 @@
+# avr-gcc 4.3.5 / avr-libc 1.6.8 build environment for Ambika and Shruthi.
+#
+# Why this exact toolchain: newer avr-gcc (5.4, 8.5) miscompiles the YAM / MI
+# oscillator DSP into a constant metallic tone (verified on hardware by the
+# Elkhart fork, docs/planning/TOOLCHAIN_RISK.md). With this image the YAM190319
+# voicecard build is byte-identical to the shipped binary.
+#
+# Why i386: Debian Squeeze's amd64 glibc needs vsyscall, which Docker Desktop's
+# WSL2 kernel disables (apt and other binaries segfault). The i386 userland
+# doesn't use vsyscall, and the AVR cross-compiler output doesn't depend on the
+# host architecture.
+#
+# Pinned by digest: the linux/386 entry of debian/eol:squeeze (manifest list
+# sha256:80ed3d6f933f102b35efaa1a9a7513e5ed9937c5a93c289dd6e2e1db51d6f331, the
+# same list the Elkhart fork pins). Squeeze is EOL; keep a `docker save`
+# backup of the built image (toolchain/ambika-squeeze-4.3.5.tar).
+#
+# Build once with network access; every compile then runs with --network none.
+#   docker build --platform linux/386 -t ambika-squeeze:4.3.5 \
+#     -f toolchain/Dockerfile.squeeze-i386 toolchain
+FROM debian/eol@sha256:4a306675b658d01a453bb89404daa87367f894b6ee62ea8f8980484099ca9bea
+
+# python-numpy: needed by the avrlib resource compiler (lookup tables, waveforms).
+RUN apt-get update -qq \
+ && apt-get install -y --no-install-recommends \
+      gcc-avr avr-libc binutils-avr \
+      make python python-numpy \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /work
