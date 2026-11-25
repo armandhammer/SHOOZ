@@ -16,16 +16,13 @@
 # backup of the built image (toolchain/ambika-squeeze-4.3.5.tar).
 #
 # Build once with network access; every compile then runs with --network none.
+# Where `docker build` can't reach the archive (GitHub Actions: seccomp blocks
+# the 32-bit socket calls), use toolchain/build-image.sh instead.
 #   docker build --platform linux/386 -t ambika-squeeze:4.3.5 \
 #     -f toolchain/Dockerfile.squeeze-i386 toolchain
 FROM debian/eol@sha256:4a306675b658d01a453bb89404daa87367f894b6ee62ea8f8980484099ca9bea
 
-# python-numpy: needed by the avrlib resource compiler (lookup tables, waveforms).
-RUN apt-get update -qq \
- && apt-get install -y --no-install-recommends \
-      gcc-avr avr-libc binutils-avr \
-      make python python-numpy \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+COPY install-packages.sh /tmp/install-packages.sh
+RUN sh /tmp/install-packages.sh && rm /tmp/install-packages.sh
 
 WORKDIR /work
