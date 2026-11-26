@@ -87,6 +87,10 @@ class Envelope {
     stage_target_[SUSTAIN] = stage_target_[DECAY];
   }
 
+  // SHOOZ segment shape preset: 0 = exponential (stock), 4 = linear,
+  // 7 = inverse exponential (slow start). Applies to all segments.
+  inline void set_curve(uint8_t curve) { curve_ = curve; }
+
   uint8_t Render() {
     phase_ += phase_increment_;
     if (phase_ < phase_increment_) {
@@ -95,12 +99,30 @@ class Envelope {
     }
     if (phase_increment_) {
       uint8_t step = InterpolateSample(wav_res_env_expo, phase_);
+      if (curve_) {
+        step = Shape(step);
+      }
       value_ = U8MixU16(a_, b_, step);
     }
     return stage_ == SUSTAIN ? stage_target_[DECAY] : value_ >> 8;
   }
 
  private:
+  // Blends the stock exponential segment toward linear (presets 1-4), then
+  // from linear toward its mirror image, 1 - e(1 - x) (presets 5-7). The
+  // same shapes as BAMBI's continuous curve at 16, 32, 48, 64, 85, 106, 127.
+  uint8_t Shape(uint8_t expo) __attribute__((noinline)) {
+    uint8_t linear = phase_ >> 8;
+    uint8_t curve = curve_;
+    if (curve <= 4) {
+      return U8Mix(expo, linear, curve == 4 ? 255 : curve << 6);
+    } else {
+      uint8_t inverse = 255 - InterpolateSample(
+          wav_res_env_expo, 65535 - phase_);
+      return U8Mix(linear, inverse, curve == 7 ? 255 : (curve - 4) * 85);
+    }
+  }
+
   // Phase increments for each stage.
   uint16_t stage_phase_increment_[NUM_SEGMENTS];
   // Value that needs to be reached at the end of each stage.
@@ -118,6 +140,9 @@ class Envelope {
 
   // Current value of the envelope.
   uint16_t value_;
+
+  // Segment shape preset (SHOOZ), see set_curve().
+  uint8_t curve_;
 
   DISALLOW_COPY_AND_ASSIGN(Envelope);
 };

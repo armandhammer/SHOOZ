@@ -420,10 +420,7 @@ lookup_tables.extend([
 Phase increment for tempo.
 ----------------------------------------------------------------------------"""
 
+# SHOOZ: the tempo phase increment table (width * bpm * 24 / (60 *
+# clock_rate) for bpm = 40..240, 804 bytes) is now computed in
+# Clock::Update(), see clock.cc.
 lookup_tables32 = []
-clock_rate = sample_rate / 40
-width = 1 << 31
-tempo_values = numpy.arange(40, 241.0)
-lookup_tables32.append(
-    ('tempo_phase_increment', width * tempo_values * 24 / (60 * clock_rate))
-)

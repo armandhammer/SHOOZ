@@ -50,7 +50,10 @@ class TransientGenerator {
     }
   }
   
-  static inline uint8_t Trigger() {
+  // SHOOZ: was declared uint8_t with no return statement. Harmless with
+  // avr-gcc 4.3.5, but undefined behaviour that modern compilers (the
+  // native test build) exploit by dropping the rest of Voice::NoteOn.
+  static inline void Trigger() {
     counter_ = 255;
   }
   

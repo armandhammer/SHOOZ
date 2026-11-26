@@ -42,11 +42,15 @@ class SystemSettings {
   uint8_t display_snap;
 
   uint16_t last_patch;
-  uint8_t padding;
+  // SHOOZ: vintage drift amount (0 = off). Stock YAM keeps this byte as
+  // padding and ignores it.
+  uint8_t vintage;
   
   void EepromSave() const;
   uint8_t EepromLoad();
-};
+// SHOOZ: packed so the host-native test build has the AVR's 15-byte layout
+// (EEPROM image, SysEx 0x04 payload); a no-op on the AVR.
+} __attribute__((packed));
 
 enum FilterBoard {
   FILTER_BOARD_LPF,
@@ -102,7 +106,14 @@ enum SystemParameter {
   PRM_SYS_DISPLAY_DELAY,
   PRM_SYS_EXPANSION_FILTER_BOARD,
   PRM_SYS_PROGRAMMER,
-  PRM_SYS_DISPLAY_SNAP
+  PRM_SYS_DISPLAY_SNAP,
+  PRM_SYS_LAST_PATCH,
+  PRM_SYS_VINTAGE = PRM_SYS_LAST_PATCH + 2,
+
+  // SHOOZ: per-patch envelope curves, stored right after SystemSettings
+  // (Part::env_curve_).
+  PRM_ENV_CURVE_1,
+  PRM_ENV_CURVE_2
 };
 
 }  // namespace shruthi

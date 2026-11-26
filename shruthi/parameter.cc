@@ -46,6 +46,11 @@ uint8_t Parameter::Scale(uint8_t value_7bits) const {
         scaled_value = 240;
       }
       scaled_value &= 0xfe;
+      // SHOOZ: below 40 means external clock; keep it at the range minimum
+      // (39) instead of the out-of-range 38 the rounding gave.
+      if (scaled_value < 40) {
+        scaled_value = 39;
+      }
     }
   }
   return scaled_value;
@@ -595,12 +600,12 @@ static const prog_Parameter parameters[kNumParameters] PROGMEM = {
     { 0, 0 },
     STR_RES_MIDI_OUT, STR_RES_MIDI_OUT }, 
 
-  // 51
-  { PRM_SYS_MIDI_OUT_MODE,
-    UNIT_MIDI_MODE,
-    MIDI_OUT_OFF, MIDI_OUT_8_7,
+  // 51 (SHOOZ: vintage drift; stock YAM repeats midi out here)
+  { PRM_SYS_VINTAGE,
+    UNIT_UINT8,
+    0, 127,
     { 0, 0 },
-    STR_RES_MIDI_OUT, STR_RES_MIDI_OUT },
+    STR_RES_VINT, STR_RES_VINTAGE },
 
   // 52
   { PRM_SYS_DISPLAY_DELAY,
@@ -867,6 +872,32 @@ static const prog_Parameter parameters[kNumParameters] PROGMEM = {
     0, 127,
     { 12, 0 },
     STR_RES_FDB, STR_RES_FEEDBACK }, 
+
+  // 90-93 (SHOOZ): envelope curves, on the "env curves" page. 92 and 93
+  // repeat 91 so that knobs 3-4 also edit it and their columns stay blank.
+  { PRM_ENV_CURVE_1,
+    UNIT_UINT8,
+    0, 7,
+    { 0, 0 },
+    STR_RES_CRV1, STR_RES_ENV1_CURVE },
+
+  { PRM_ENV_CURVE_2,
+    UNIT_UINT8,
+    0, 7,
+    { 0, 0 },
+    STR_RES_CRV2, STR_RES_ENV2_CURVE },
+
+  { PRM_ENV_CURVE_2,
+    UNIT_UINT8,
+    0, 7,
+    { 0, 0 },
+    STR_RES_CRV2, STR_RES_ENV2_CURVE },
+
+  { PRM_ENV_CURVE_2,
+    UNIT_UINT8,
+    0, 7,
+    { 0, 0 },
+    STR_RES_CRV2, STR_RES_ENV2_CURVE },
 };
 
 /* static */
@@ -888,7 +919,8 @@ uint8_t ParameterManager::cc_to_id_[128];
 
 /* static */
 void ParameterManager::Init() {
-  memset(offset_to_id_, 0xff, 192);
+  // SHOOZ: was 192, which wrote 32 bytes past the 160-byte table.
+  memset(offset_to_id_, 0xff, sizeof(offset_to_id_));
   memset(cc_to_id_, 0xff, 128);
   for (uint8_t i = 0; i < kNumParameters; ++i) {
     const Parameter& p = parameter(i);

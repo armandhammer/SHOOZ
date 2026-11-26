@@ -98,7 +98,10 @@ enum Page {
   
   PAGE_LOAD_SAVE,
   PAGE_CONFIRM,
-  PAGE_JAM
+  PAGE_JAM,
+  // SHOOZ. Appended (not next to the other modulation pages) because
+  // programmer pot mapping derives page numbers from parameter indices.
+  PAGE_MOD_CURVES
 };
 
 enum Action {

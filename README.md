@@ -9,12 +9,29 @@ SHOOZ is the Shruthi sibling of [BAMBI](https://github.com/armandhammer/BAMBI)
 design synth, no groovebox features, and it has to work with any filter board
 (SMR4, CS-80, IR3109, Polivoks, …).
 
-> **Status:** setup only. This branch builds YAM 0.05 unchanged with the
-> pinned toolchain. Planned first changes (see BAMBI
-> [docs/AUDIT.md](https://github.com/armandhammer/BAMBI/blob/main/docs/AUDIT.md),
-> "Shruthi"): upstream 1.03 sequencer/arpeggiator fixes, envelope curves
-> shared with BAMBI, filter-board profiles, vintage drift. Shruthi has only
-> ~960 B of flash and ~280 B of stack left, so each change needs care.
+> **Status:** wave 1 is implemented on branch `shooz-wave1` and builds,
+> with 944 B of flash free (YAM 0.05 had 960 B). It has **not been tested on
+> hardware** yet. See [docs/PLAN.md](docs/PLAN.md) and the checklist in
+> [docs/HARDWARE_TESTS.md](docs/HARDWARE_TESTS.md).
+
+What SHOOZ adds to YAM 0.05:
+
+- **Upstream 1.03 fixes:** the arpeggiator starts on the first key with an
+  external clock, legato sequencer steps tie, Stop no longer cuts held notes
+  in step mode, and release tails fade out fully.
+- **Envelope curves:** each envelope gets a curve preset (0 = stock
+  exponential, 4 = linear, 7 = inverse exponential), saved with the patch.
+  They're on the new **env curves** page after LFO 2.
+- **Vintage drift:** a global `vint` setting (system → MIDI page). The pitch,
+  oscillator 2 against oscillator 1, and the cutoff wander slowly, like an
+  old analog monosynth.
+- **Diagnostics for editors:** the SysEx version reply identifies SHOOZ and
+  reports the worst-case free stack and audio glitch count
+  (`utils/shooz_sysex.py`).
+
+Patches that use envelope curves are saved with a new format marker that
+stock YAM refuses cleanly (it keeps the current sound). Patches without
+curves are identical to stock.
 
 The original YAM readme is in [README](README).
 

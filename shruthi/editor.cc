@@ -96,12 +96,12 @@ PageDefinition Editor::page_definition_[] = {
     PAGE_MOD_ENV_2, PAGE_MOD_LFO_2,
     STR_RES_LFO_1, PARAMETER_EDITOR, 24, LED_4_MASK },
 
-  /* PAGE_MOD_LFO_2 */ { PAGE_MOD_ENV_1, GROUP_MOD_SOURCES,
-    PAGE_MOD_LFO_1, PAGE_MOD_MATRIX,
+  /* PAGE_MOD_LFO_2 */ { PAGE_MOD_CURVES, GROUP_MOD_SOURCES,
+    PAGE_MOD_LFO_1, PAGE_MOD_CURVES,
     STR_RES_LFO_2, PARAMETER_EDITOR, 28, LED_5_MASK },
 
   /* PAGE_MOD_MATRIX */ { PAGE_MOD_OPERATORS, GROUP_MOD_MATRIX,
-    PAGE_MOD_LFO_2, PAGE_MOD_OPERATORS,
+    PAGE_MOD_CURVES, PAGE_MOD_OPERATORS,
     STR_RES_MOD_, PARAMETER_EDITOR, 32, 0 },
 
   /* PAGE_MOD_OPERATORS */ { PAGE_MOD_MATRIX, GROUP_MOD_MATRIX,
@@ -151,6 +151,10 @@ PageDefinition Editor::page_definition_[] = {
   /* PAGE_JAM */ { PAGE_JAM, GROUP_JAM,
     PAGE_JAM, PAGE_JAM,
     STR_RES_PATCH, JAM, 0, 0x00 },
+
+  /* PAGE_MOD_CURVES (SHOOZ) */ { PAGE_MOD_ENV_1, GROUP_MOD_SOURCES,
+    PAGE_MOD_LFO_2, PAGE_MOD_MATRIX,
+    STR_RES_ENV_CURVES, PARAMETER_EDITOR, 90, LED_4_MASK | LED_5_MASK },
 };
 
 /* <static> */
@@ -1061,6 +1065,7 @@ uint8_t Editor::KnobIndexToParameterId(uint8_t knob_index) {
         return PRM_FILTER_ENV;
     }
     subpage_ = 0;
+    return 0xff;  // SHOOZ: stock fell off the end (unreachable: 4 knobs).
   } else {
     return page_definition_[current_page_].first_parameter_index + \
         knob_index;

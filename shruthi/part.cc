@@ -39,10 +39,10 @@ namespace shruthi {
 Part part;
 
 /* <static> */
-uint8_t Part::data_access_byte_[1];
 Patch Part::patch_;
 SequencerSettings Part::sequencer_settings_;
 SystemSettings Part::system_settings_;
+uint8_t Part::env_curve_[kNumEnvelopes];
 bool Part::dirty_;
 
 Voice Part::voice_;
@@ -84,6 +84,7 @@ void Part::Init() {
     ResetSystemSettings();
     system_settings_.EepromSave();
   }
+  SanitizeParameters();
   Reset();
   pressed_keys_.Init();
   mono_allocator_.Init();
@@ -219,6 +220,7 @@ static const prog_char init_system_settings[] PROGMEM = {
 /* static */
 void Part::ResetPatch() {
   ResourcesManager::Load(init_patch, 0, &patch_);
+  env_curve_[0] = env_curve_[1] = 0;
   Touch(true);
 }
 
@@ -256,6 +258,11 @@ void Part::NoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
     return;
   }
   
+  bool reclock_arpeggiator = sequencer_settings_.mode() == SEQUENCER_MODE_ARP
+      && !sequencer_settings_.internal_clock()
+      && pressed_keys_.size() == 0
+      && running();
+
   if (release_latched_keys_on_next_note_on_) {
     bool still_latched = ignore_note_off_messages_;
     
@@ -277,6 +284,10 @@ void Part::NoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
   
   if (sequencer_settings_.mode() == SEQUENCER_MODE_STEP || !running()) {
     InternalNoteOn(note, velocity);
+  }
+  
+  if (reclock_arpeggiator) {
+    ClockArpeggiator();
   }
 }
 
@@ -428,6 +439,7 @@ void Part::Clock(bool internal) {
       }
     }
     if (!arp_seq_prescaler_) {
+      NextStep();
       ClockArpeggiator();
       ClockSequencer();
     }
@@ -471,14 +483,18 @@ void Part::Start(bool internal) {
   lfo_step_[0] = 0;
   lfo_step_[1] = 0;
   
-  poly_allocator_.Clear();
-  mono_allocator_.Clear();
-  voice_.NoteOff();
+  if (sequencer_settings_.mode() != SEQUENCER_MODE_STEP) {
+    poly_allocator_.Clear();
+    mono_allocator_.Clear();
+    generated_notes_.Clear();
+    voice_.NoteOff();
+  }
+  
   release_latched_keys_on_next_note_on_ = false;
   ignore_note_off_messages_ = false;
   
   arp_seq_prescaler_ = 0;
-  arp_seq_step_ = 0;
+  arp_seq_step_ = 0xff;
   arp_seq_running_ = true;
   arp_previous_note_ = 0;
   seq_transposition_ = 0;
@@ -491,20 +507,34 @@ void Part::Start(bool internal) {
     arp_octave_ = 0;
     arp_direction_ = 1;
   }
-  generated_notes_.Clear();
 }
 
 /* static */
 void Part::Stop(bool internal) {
   arp_seq_running_ = false;
   ignore_note_off_messages_ = false;
-  StopSequencerArpeggiatorNotes();
-  AllNotesOff();
+  if (sequencer_settings_.mode() != SEQUENCER_MODE_STEP) {
+    StopSequencerArpeggiatorNotes();
+    AllSoundOff();
+  }
   if (internal) {
     midi_dispatcher.OnStop();
   }
 }
 
+/* static */
+void Part::NextStep() {
+  ++arp_seq_step_;
+  if (arp_seq_step_ >= sequencer_settings_.pattern_size) {
+    arp_seq_step_ = 0;
+  }
+  if (sequencer_settings_.mode() == SEQUENCER_MODE_SEQ) {
+    uint8_t n = (arp_seq_step_ + sequencer_settings_.pattern_rotation) & 0x0f;
+    if (sequencer_settings_.steps[n].legato()) {
+      arp_seq_gate_length_counter_ += step_duration();
+    }
+  }
+}
 
 /* static */
 void Part::ClockArpeggiator() {
@@ -649,16 +679,6 @@ void Part::ClockSequencer() {
       arp_seq_gate_length_counter_ = (step_duration() >> 1) + 1;
     }
   }
-  ++arp_seq_step_;
-  if (arp_seq_step_ >= sequencer_settings_.pattern_size) {
-    arp_seq_step_ = 0;
-  }
-  if (sequencer_settings_.mode() == SEQUENCER_MODE_SEQ) {
-    n = (arp_seq_step_ + sequencer_settings_.pattern_rotation) & 0x0f;
-    if (sequencer_settings_.steps[n].legato()) {
-      arp_seq_gate_length_counter_ += step_duration();
-    }
-  }
 }
 
 /* static */
@@ -706,15 +726,51 @@ void Part::SetScaledParameter(
 }
 
 /* static */
+uint8_t* Part::parameter_address(uint8_t offset) {
+  uint8_t* base;
+  if (offset >= PRM_ENV_CURVE_1) {
+    base = env_curve_;
+    offset -= PRM_ENV_CURVE_1;
+  } else if (offset >= PRM_SYS_OCTAVE) {
+    base = (uint8_t*)&system_settings_;
+    offset -= PRM_SYS_OCTAVE;
+  } else if (offset >= PRM_SEQ_MODE) {
+    base = (uint8_t*)&sequencer_settings_;
+    offset -= PRM_SEQ_MODE;
+  } else {
+    base = (uint8_t*)&patch_;
+  }
+  return base + offset;
+}
+
+/* static */
+void Part::SanitizeParameters() {
+  for (uint8_t offset = 0; offset < PRM_ENV_CURVE_1; ++offset) {
+    // Cutoff/resonance 2 and the filter modes mean different things (with
+    // different ranges) on each filter board; they index no table.
+    if (offset == PRM_FILTER_CUTOFF_2 || offset == PRM_FILTER_RESONANCE_2 ||
+        offset == PRM_FILTER_MODE_1 || offset == PRM_FILTER_MODE_2) {
+      continue;
+    }
+    uint8_t index = parameter_manager.at_offset(offset);
+    if (index != 0xff) {
+      uint8_t* address = parameter_address(offset);
+      *address = parameter_manager.parameter(index).Clamp(*address);
+    }
+  }
+}
+
+/* static */
 void Part::SetParameter(
     uint8_t parameter_index,
     uint8_t offset,
     uint8_t value,
     bool user_initiated) {
-  if (data_access_byte_[offset + 1] == value) {
+  uint8_t* address = parameter_address(offset);
+  if (*address == value) {
     return;
   }
-  data_access_byte_[offset + 1] = value;
+  *address = value;
   if (offset >= PRM_ENV_ATTACK_1 && offset <= PRM_LFO_RETRIGGER_2) {
     UpdateModulationRates();
   } else if (offset == PRM_ARP_DIRECTION) {

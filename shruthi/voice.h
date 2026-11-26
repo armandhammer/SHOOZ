@@ -106,6 +106,8 @@ class Voice {
   static inline void ProcessModulationMatrix() __attribute__((always_inline));
   static inline void UpdateDestinations() __attribute__((always_inline));
   static inline void RenderOscillators() __attribute__((always_inline));
+  // SHOOZ vintage drift (see voice.cc).
+  static void UpdateVintage() __attribute__((noinline));
   
   static uint16_t NoteToPitch(uint8_t note);
    
