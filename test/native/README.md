@@ -42,6 +42,15 @@ code are the real ones.
 | `tests/voice.cc` | note on/off, every oscillator shape, extremes, curves on the VCA, vintage drift bounds (cutoff and pitch), every filter-board CV path |
 | `tests/fuzz.cc` | random channel messages, random NRPN/SysEx payloads, raw byte garbage |
 
+## Parameter export for SHED
+
+`make -f test/native/makefile export` builds `tools/export_params.cc`
+against the same objects and prints the parameter table (offsets, units,
+ranges, CCs, NRPN ownership), the LCD text for every value, the init
+patch/sequencer/system data and the SHOOZ capability values as JSON. SHED's
+Shruthi map (`src/model/params/shooz-params.json`) is this output; rerun it
+whenever `parameter.cc`, the string table or the init patch change.
+
 ## How the firmware compiles on a PC
 
 Same approach as BAMBI's harness:

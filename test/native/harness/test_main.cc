@@ -6,10 +6,6 @@
 #include <inttypes.h>
 #include <avr/io.h>
 
-volatile uint8_t native_sreg = 0x80;
-volatile uint8_t native_sfr[0x200];
-uint8_t native_eeprom[E2END + 1];
-
 namespace native_test {
 
 static TestCase* head = 0;

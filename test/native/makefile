@@ -48,9 +48,12 @@ FW_CC   := $(filter-out shruthi/diagnostics.cc avrlib/devices/wii_nunchuk.cc \
              $(wildcard avrlib/*.cc avrlib/devices/*.cc shruthi/*.cc)) \
            $(OVR)/avrlib/time.cc
 TESTS   := $(wildcard test/native/tests/*.cc)
-HARNESS := test/native/harness/test_main.cc test/native/harness/shruthi_env.cc
+ENV_CC  := test/native/harness/shruthi_env.cc test/native/harness/native_globals.cc
+HARNESS := test/native/harness/test_main.cc $(ENV_CC)
 SRCS    := $(FW_CC) $(TESTS) $(HARNESS)
 OBJS    := $(patsubst %,$(BUILD)/obj/%.o,$(SRCS))
+EXPORT_OBJS := $(patsubst %,$(BUILD)/obj/%.o,$(FW_CC) $(ENV_CC) \
+                 test/native/tools/export_params.cc)
 
 all: run
 
@@ -59,6 +62,13 @@ $(BUILD)/shruthi_tests: $(OBJS)
 
 run: $(BUILD)/shruthi_tests
 	@$(BUILD)/shruthi_tests $(TEST)
+
+# Parameter table, labels and init data as JSON (for SHED).
+$(BUILD)/export_params: $(EXPORT_OBJS)
+	$(CXX) $(LDFLAGS) -Wl,--gc-sections -o $@ $^
+
+export: $(BUILD)/export_params
+	@$(BUILD)/export_params
 
 # shruthi.cc holds the firmware main() and the ISRs.
 $(BUILD)/obj/shruthi/shruthi.cc.o: EXTRA := -Dmain=firmware_main
@@ -139,5 +149,5 @@ $(OVR)/avrlib/devices/buffered_display.h: avrlib/devices/buffered_display.h
 clean:
 	rm -rf $(BUILD)
 
-.PHONY: all run clean
+.PHONY: all run export clean
 -include $(OBJS:.o=.d)
