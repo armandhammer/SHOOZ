@@ -23,6 +23,7 @@
 
 #include "avrlib/devices/shift_register.h"
 #include "avrlib/serial.h"
+#include "shruthi/diagnostics.h"
 #include "shruthi/display.h"
 #include "shruthi/editor.h"
 #include "shruthi/midi_dispatcher.h"
@@ -381,10 +382,19 @@ void Storage::SysExAcceptBuffer() {
 
     case 0x1c:
       {
-        uint8_t version[2];
+        // Bytes 0-1 are the stock reply (ROM version). SHOOZ appends: family
+        // (2), SHOOZ version, number of oscillator shapes, patch layout,
+        // worst-case free stack and audio glitches since boot.
+        uint8_t version[8];
         version[0] = pgm_read_byte(waveform_table[WAV_RES_VERSION]);
         version[1] = pgm_read_byte(waveform_table[WAV_RES_VERSION] + 1);
-        Storage::SysExDumpBuffer(version, 0x0c, 0, 2);
+        version[2] = kShoozFamily;
+        version[3] = kShoozVersion;
+        version[4] = WAVEFORM_LAST;
+        version[5] = kPatchLayoutVersion;
+        version[6] = Diagnostics::FreeStack();
+        version[7] = Diagnostics::glitches();
+        Storage::SysExDumpBuffer(version, 0x0c, 0, sizeof(version));
       }
       break;
 

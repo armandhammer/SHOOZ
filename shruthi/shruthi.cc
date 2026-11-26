@@ -20,6 +20,7 @@
 #include "avrlib/timer.h"
 #include "midi/midi.h"
 #include "shruthi/audio_out.h"
+#include "shruthi/diagnostics.h"
 #include "shruthi/midi_dispatcher.h"
 #include "shruthi/part.h"
 #include "shruthi/storage.h"
@@ -200,6 +201,7 @@ void FillAudioBuffer() {
   cv_2_out.Write(cv_2);
   
   if (audio_out.num_glitches()) {
+    Diagnostics::AddGlitches(audio_out.num_glitches());
     audio_out.ResetGlitchCounter();
     display.set_status('!');
   }
