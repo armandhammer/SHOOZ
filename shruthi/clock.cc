@@ -36,7 +36,11 @@ uint32_t Clock::phase_increment_;
 
 /* static */
 void Clock::Update(uint8_t bpm) {
-  phase_increment_ = pgm_read_dword(lut_res_tempo_phase_increment + bpm - 40);
+  // SHOOZ: computed instead of read from the 804-byte table
+  // lut_res_tempo_phase_increment (2^31 * 24 * bpm / (60 * control rate)).
+  // The constant is truncated from 876173.33: the error is at most 78 in
+  // 35 million (about 0.0001 BPM).
+  phase_increment_ = static_cast<uint32_t>(bpm) * 876173UL;
 }
 
 }  // namespace shruthi

@@ -87,7 +87,6 @@ extern const prog_uint16_t lut_res_groove_push[] PROGMEM;
 extern const prog_uint16_t lut_res_groove_lag[] PROGMEM;
 extern const prog_uint16_t lut_res_groove_human[] PROGMEM;
 extern const prog_uint16_t lut_res_groove_monkey[] PROGMEM;
-extern const prog_uint32_t lut_res_tempo_phase_increment[] PROGMEM;
 extern const prog_uint8_t wav_res_formant_sine[] PROGMEM;
 extern const prog_uint8_t wav_res_formant_square[] PROGMEM;
 extern const prog_uint8_t wav_res_sine[] PROGMEM;
@@ -652,8 +651,6 @@ extern const prog_uint8_t chr_res_special_characters[] PROGMEM;
 #define LUT_RES_GROOVE_HUMAN_SIZE 16
 #define LUT_RES_GROOVE_MONKEY 42
 #define LUT_RES_GROOVE_MONKEY_SIZE 16
-#define LUT_RES_TEMPO_PHASE_INCREMENT 0
-#define LUT_RES_TEMPO_PHASE_INCREMENT_SIZE 201
 #define WAV_RES_FORMANT_SINE 0
 #define WAV_RES_FORMANT_SINE_SIZE 256
 #define WAV_RES_FORMANT_SQUARE 1
