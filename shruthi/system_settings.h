@@ -42,7 +42,9 @@ class SystemSettings {
   uint8_t display_snap;
 
   uint16_t last_patch;
-  uint8_t padding;
+  // SHOOZ: vintage drift amount (0 = off). Stock YAM keeps this byte as
+  // padding and ignores it.
+  uint8_t vintage;
   
   void EepromSave() const;
   uint8_t EepromLoad();
@@ -102,7 +104,9 @@ enum SystemParameter {
   PRM_SYS_DISPLAY_DELAY,
   PRM_SYS_EXPANSION_FILTER_BOARD,
   PRM_SYS_PROGRAMMER,
-  PRM_SYS_DISPLAY_SNAP
+  PRM_SYS_DISPLAY_SNAP,
+  PRM_SYS_LAST_PATCH,
+  PRM_SYS_VINTAGE = PRM_SYS_LAST_PATCH + 2
 };
 
 }  // namespace shruthi

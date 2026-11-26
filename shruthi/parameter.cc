@@ -595,12 +595,12 @@ static const prog_Parameter parameters[kNumParameters] PROGMEM = {
     { 0, 0 },
     STR_RES_MIDI_OUT, STR_RES_MIDI_OUT }, 
 
-  // 51
-  { PRM_SYS_MIDI_OUT_MODE,
-    UNIT_MIDI_MODE,
-    MIDI_OUT_OFF, MIDI_OUT_8_7,
+  // 51 (SHOOZ: vintage drift; stock YAM repeats midi out here)
+  { PRM_SYS_VINTAGE,
+    UNIT_UINT8,
+    0, 127,
     { 0, 0 },
-    STR_RES_MIDI_OUT, STR_RES_MIDI_OUT },
+    STR_RES_VINT, STR_RES_VINTAGE },
 
   // 52
   { PRM_SYS_DISPLAY_DELAY,

@@ -21,7 +21,7 @@
 // make resources
 
 
-#include "shruthi\resources.h"
+#include "shruthi/resources.h"
 
 namespace shruthi {
 
@@ -83,6 +83,8 @@ static const prog_char str_res_midi_out[] PROGMEM = "midi out";
 static const prog_char str_res_pause[] PROGMEM = "pause";
 static const prog_char str_res_startpage[] PROGMEM = "startpage";
 static const prog_char str_res_snap[] PROGMEM = "snap";
+static const prog_char str_res_vint[] PROGMEM = "vint";
+static const prog_char str_res_vintage[] PROGMEM = "vintage";
 static const prog_char str_res_oscillator_1[] PROGMEM = "oscillator 1";
 static const prog_char str_res_oscillator_2[] PROGMEM = "oscillator 2";
 static const prog_char str_res_mixer[] PROGMEM = "mixer";
@@ -513,6 +515,8 @@ PROGMEM const prog_char* const string_table[] = {
   str_res_pause,
   str_res_startpage,
   str_res_snap,
+  str_res_vint,
+  str_res_vintage,
   str_res_oscillator_1,
   str_res_oscillator_2,
   str_res_mixer,

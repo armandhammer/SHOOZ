@@ -59,6 +59,61 @@ uint8_t Voice::no_sync_[kAudioBlockSize];
 uint8_t Voice::dummy_sync_state_[kAudioBlockSize];
 uint8_t Voice::trigger_count_;
 uint8_t Voice::volume_;
+
+// -----------------------------------------------------------------------------
+// SHOOZ vintage drift, scaled by the global system setting "vint" (0 = off,
+// stock YAM behaviour).
+//
+// A slow random walk: a new pair of random targets every 256 blocks (~260 ms),
+// each followed by a one-pole smoother with the same time constant. The first
+// moves both oscillators (up to +/-6 cents) and the cutoff (up to +/-4 steps
+// of 256); the second moves oscillator 2 against oscillator 1 (up to +/-6
+// cents), so the beating between the two drifts like on an analog monosynth.
+// The drift has its own generator (a 16-bit LFSR), so the shared Random state
+// (noise, random modulation source) is untouched.
+// -----------------------------------------------------------------------------
+
+static uint16_t drift_rng = 0xace1;
+static uint8_t drift_counter;
+static int16_t drift[2];  // Smoothed drift, target << 8.
+
+// One-pole smoother toward random byte i of drift_rng; returns the drift as
+// a signed byte.
+static int8_t SmoothDrift(uint8_t i) __attribute__((noinline));
+static int8_t SmoothDrift(uint8_t i) {
+  int16_t d = drift[i];
+  int8_t target = reinterpret_cast<const int8_t*>(&drift_rng)[i];
+  d += static_cast<int8_t>(((static_cast<int16_t>(target) << 8) - d) >> 8);
+  drift[i] = d;
+  return d >> 8;
+}
+
+// Runs after the modulation matrix and adds the drift to its outputs, so the
+// rest of ProcessBlock is unchanged. Out of line on purpose: inlined into the
+// (huge) ProcessBlock it costs ~300 B of register spills. Runs even at
+// vintage 0, where every offset is 0.
+/* static */
+void Voice::UpdateVintage() {
+  if (++drift_counter == 0) {
+    // 8 steps of a 16-bit Galois LFSR: a fresh pair of random bytes.
+    for (uint8_t n = 8; n; --n) {
+      uint8_t lsb = drift_rng & 1;
+      drift_rng >>= 1;
+      if (lsb) {
+        drift_rng ^= 0xb400;
+      }
+    }
+  }
+  uint8_t vintage = part.system_settings().vintage;
+  // Both oscillators: 128 units of the fine destination = 1/128 semitone, so
+  // full scale (127 x 127 >> 4) is about +/-8/128 semitone.
+  int16_t amount = S8U8Mul(SmoothDrift(0), vintage) >> 4;
+  dst_[MOD_DST_VCO_1_2_FINE] += amount;
+  // Cutoff, 14-bit: up to +/-252.
+  dst_[MOD_DST_FILTER_CUTOFF] += amount >> 2;
+  // Oscillator 2 against oscillator 1: 4 units = 1/128 semitone.
+  dst_[MOD_DST_VCO_2] += S8U8MulShift8(SmoothDrift(1), vintage) >> 1;
+}
 /* </static> */
 
 /* static */
@@ -524,6 +579,7 @@ const prog_uint8_t four_step_sequence[4] PROGMEM = {
 void Voice::ProcessBlock() {
   LoadSources();
   ProcessModulationMatrix();
+  UpdateVintage();
   UpdateDestinations();
   RenderOscillators();
   

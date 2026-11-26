@@ -78,6 +78,8 @@ midi out
 pause
 startpage
 snap
+vint
+vintage
 oscillator 1
 oscillator 2
 mixer
