@@ -43,6 +43,7 @@ uint8_t Part::data_access_byte_[1];
 Patch Part::patch_;
 SequencerSettings Part::sequencer_settings_;
 SystemSettings Part::system_settings_;
+uint8_t Part::env_curve_[kNumEnvelopes];  // Must follow system_settings_.
 bool Part::dirty_;
 
 Voice Part::voice_;
@@ -219,6 +220,7 @@ static const prog_char init_system_settings[] PROGMEM = {
 /* static */
 void Part::ResetPatch() {
   ResourcesManager::Load(init_patch, 0, &patch_);
+  env_curve_[0] = env_curve_[1] = 0;
   Touch(true);
 }
 

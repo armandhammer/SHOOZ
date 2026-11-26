@@ -867,6 +867,32 @@ static const prog_Parameter parameters[kNumParameters] PROGMEM = {
     0, 127,
     { 12, 0 },
     STR_RES_FDB, STR_RES_FEEDBACK }, 
+
+  // 90-93 (SHOOZ): envelope curves, on the "env curves" page. 92 and 93
+  // repeat 91 so that knobs 3-4 also edit it and their columns stay blank.
+  { PRM_ENV_CURVE_1,
+    UNIT_UINT8,
+    0, 7,
+    { 0, 0 },
+    STR_RES_CRV1, STR_RES_ENV1_CURVE },
+
+  { PRM_ENV_CURVE_2,
+    UNIT_UINT8,
+    0, 7,
+    { 0, 0 },
+    STR_RES_CRV2, STR_RES_ENV2_CURVE },
+
+  { PRM_ENV_CURVE_2,
+    UNIT_UINT8,
+    0, 7,
+    { 0, 0 },
+    STR_RES_CRV2, STR_RES_ENV2_CURVE },
+
+  { PRM_ENV_CURVE_2,
+    UNIT_UINT8,
+    0, 7,
+    { 0, 0 },
+    STR_RES_CRV2, STR_RES_ENV2_CURVE },
 };
 
 /* static */

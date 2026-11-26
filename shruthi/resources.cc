@@ -85,6 +85,11 @@ static const prog_char str_res_startpage[] PROGMEM = "startpage";
 static const prog_char str_res_snap[] PROGMEM = "snap";
 static const prog_char str_res_vint[] PROGMEM = "vint";
 static const prog_char str_res_vintage[] PROGMEM = "vintage";
+static const prog_char str_res_crv1[] PROGMEM = "crv1";
+static const prog_char str_res_crv2[] PROGMEM = "crv2";
+static const prog_char str_res_env1_curve[] PROGMEM = "env1 curve";
+static const prog_char str_res_env2_curve[] PROGMEM = "env2 curve";
+static const prog_char str_res_env_curves[] PROGMEM = "env curves";
 static const prog_char str_res_oscillator_1[] PROGMEM = "oscillator 1";
 static const prog_char str_res_oscillator_2[] PROGMEM = "oscillator 2";
 static const prog_char str_res_mixer[] PROGMEM = "mixer";
@@ -517,6 +522,11 @@ PROGMEM const prog_char* const string_table[] = {
   str_res_snap,
   str_res_vint,
   str_res_vintage,
+  str_res_crv1,
+  str_res_crv2,
+  str_res_env1_curve,
+  str_res_env2_curve,
+  str_res_env_curves,
   str_res_oscillator_1,
   str_res_oscillator_2,
   str_res_mixer,

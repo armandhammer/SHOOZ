@@ -113,6 +113,10 @@ void Voice::UpdateVintage() {
   dst_[MOD_DST_FILTER_CUTOFF] += amount >> 2;
   // Oscillator 2 against oscillator 1: 4 units = 1/128 semitone.
   dst_[MOD_DST_VCO_2] += S8U8MulShift8(SmoothDrift(1), vintage) >> 1;
+
+  // SHOOZ envelope curves.
+  envelope_[0].set_curve(part.env_curve_[0]);
+  envelope_[1].set_curve(part.env_curve_[1]);
 }
 /* </static> */
 

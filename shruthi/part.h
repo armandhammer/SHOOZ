@@ -107,6 +107,7 @@ class Part {
   static inline SequencerSettings* mutable_sequencer_settings() {
     return &sequencer_settings_;
   }
+  static inline uint8_t* mutable_env_curve() { return env_curve_; }
   static inline SystemSettings* mutable_system_settings() {
     return &system_settings_;
   }
@@ -216,6 +217,11 @@ class Part {
   static Patch patch_;
   static SequencerSettings sequencer_settings_;
   static SystemSettings system_settings_;
+  // SHOOZ: envelope curve presets of the current patch (0-7). Defined right
+  // after system_settings_ so that they are reachable as parameter offsets
+  // PRM_ENV_CURVE_1/2 (see data_access_byte_). Saved in the patch's spare
+  // bits by Patch::PrepareForWrite().
+  static uint8_t env_curve_[kNumEnvelopes];
   static bool dirty_;
   
   static uint8_t nrpn_parameter_number_;

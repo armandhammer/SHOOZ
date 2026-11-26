@@ -106,7 +106,12 @@ enum SystemParameter {
   PRM_SYS_PROGRAMMER,
   PRM_SYS_DISPLAY_SNAP,
   PRM_SYS_LAST_PATCH,
-  PRM_SYS_VINTAGE = PRM_SYS_LAST_PATCH + 2
+  PRM_SYS_VINTAGE = PRM_SYS_LAST_PATCH + 2,
+
+  // SHOOZ: per-patch envelope curves, stored right after SystemSettings
+  // (Part::env_curve_).
+  PRM_ENV_CURVE_1,
+  PRM_ENV_CURVE_2
 };
 
 }  // namespace shruthi

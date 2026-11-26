@@ -80,6 +80,11 @@ startpage
 snap
 vint
 vintage
+crv1
+crv2
+env1 curve
+env2 curve
+env curves
 oscillator 1
 oscillator 2
 mixer

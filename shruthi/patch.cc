@@ -51,7 +51,16 @@ void Patch::PrepareForWrite() {
   extra_data_[0] = system_settings.legato ? 0x40 : 0x00;
   extra_data_[0] |= system_settings.portamento;
   
-  extra_data_[1] = sequencer_settings.seq_mode;
+  // SHOOZ: the envelope curves go in the spare high bits of the sequencer
+  // mode byte. A patch that uses them gets the version marker '&', which
+  // stock YAM refuses cleanly instead of misreading the sequencer mode;
+  // patches with stock curves are saved exactly as before.
+  const uint8_t* curve = part.mutable_env_curve();
+  uint8_t curves = (curve[0] << 2) | (curve[1] << 5);
+  extra_data_[1] = sequencer_settings.seq_mode | curves;
+  if (curves) {
+    version_ = '&';
+  }
   extra_data_[2] = sequencer_settings.seq_tempo;
   extra_data_[3] = sequencer_settings.seq_groove_template;
   extra_data_[4] = sequencer_settings.seq_groove_amount;
@@ -68,7 +77,7 @@ uint8_t Patch::CheckBuffer(uint8_t* buffer) {
       return 0;
     }
   }
-  if (buffer[91] != '!' && buffer[91] != '%') {
+  if (buffer[91] != '!' && buffer[91] != '%' && buffer[91] != '&') {
     memset(name, '-', 8);
     return 0;
   }
@@ -104,7 +113,12 @@ void Patch::Update() {
   filter_2_mode_ = filter_topology_ & 0xf;
   filter_1_mode_ = filter_topology_ >> 4;
   
-  if (version_ == '%') {
+  uint8_t curves = version_ == '&' ? extra_data_[1] : 0;
+  uint8_t* curve = part.mutable_env_curve();
+  curve[0] = (curves >> 2) & 0x07;
+  curve[1] = curves >> 5;
+
+  if (version_ == '%' || version_ == '&') {
     SystemSettings* system_settings = part.mutable_system_settings();
     SequencerSettings* sequencer_settings = part.mutable_sequencer_settings();
     
@@ -112,7 +126,7 @@ void Patch::Update() {
     system_settings->portamento = extra_data_[0] & 0x3f;
 
     if (!part.running()) {
-      sequencer_settings->seq_mode = extra_data_[1];
+      sequencer_settings->seq_mode = extra_data_[1] & 0x03;
       sequencer_settings->seq_tempo = extra_data_[2];
       sequencer_settings->seq_groove_template = extra_data_[3];
       sequencer_settings->seq_groove_amount = extra_data_[4];
