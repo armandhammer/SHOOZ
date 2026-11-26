@@ -65,3 +65,31 @@ for each item.
 - [ ] Save a patch with both curves at 0: it still loads on stock YAM
       (optional; needs reflashing stock).
 - [ ] `shooz_sysex.py ... patch` shows the curves of the current patch.
+
+## Native-test fixes (see DECISIONS.md, 2026-11-26)
+
+These changed code that every edit goes through, so they need a broad
+check even though the native tests pass.
+
+- [ ] **Every page edits as before.** Turn each knob on every page
+      (oscillators, mixer, filter, envelopes, LFOs, env curves, mod
+      matrix rows 1 and 12, operators, sequencer, system pages); the value
+      changes and the sound follows. (Parameter access was rewritten.)
+- [ ] **System settings survive a power cycle**: change MIDI channel,
+      filter board and `vint`, power off and on.
+- [ ] **Old patches load unchanged**: load several stock and pre-SHOOZ
+      patches from internal and external banks and compare with how you
+      remember them. (Loads are now clamped to valid ranges; valid data
+      must not change.)
+- [ ] **Foreign SysEx is ignored**: request a patch dump
+      (`shooz_sysex.py ... patch`), then send any other device's SysEx
+      (e.g. a universal identity request from a DAW or MIDI-OX, or the
+      3 bytes `F0 7D F7`). The Shruthi must not send a second dump.
+- [ ] **Out-of-range patch write is refused**: a patch write request
+      (0x21) to slot 9999 shows `#` on the display and changes nothing.
+- [ ] **Wavequence at the top**: oscillator 1 = `wavqnc`, parameter swept
+      to 127. The last step sounds like the one before it (no burst of
+      noise).
+- [ ] **CSaw with parameter 0-10**: clean saw, no clicks or grit compared
+      with parameter 11+.
+- [ ] **Tempo pot fully down** shows `ext`, never `38`.

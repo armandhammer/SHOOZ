@@ -184,6 +184,11 @@ void Storage::SysExBulkDump() {
 }
 
 /* static */
+void Storage::SanitizeParameters() {
+  part.SanitizeParameters();
+}
+
+/* static */
 void Storage::SysExParseCommand() {
   sysex_rx_bytes_received_ = 0;
   sysex_rx_state_ = RECEIVING_DATA;
@@ -253,7 +258,7 @@ void Storage::SysExParseCommand() {
       break;
 
     default:
-      sysex_rx_state_ = RECEIVING_FOOTER;
+      sysex_rx_state_ = RECEPTION_ERROR;  // SHOOZ, see SysExReceive().
       break;
   }
 }
@@ -289,6 +294,7 @@ void Storage::SysExAcceptBuffer() {
           (uint8_t*) part.mutable_system_settings(),
           sysex_rx_buffer_,
           sizeof(SystemSettings));
+      part.SanitizeParameters();
       part.mutable_system_settings()->EepromSave();
       success = 1;
       break;
@@ -313,6 +319,7 @@ void Storage::SysExAcceptBuffer() {
           sysex_rx_buffer_,
          sizeof(SequencerSettings));
       part.mutable_sequencer_settings()->Update();
+      part.SanitizeParameters();
       success = 1;
       break;
 
@@ -398,14 +405,22 @@ void Storage::SysExAcceptBuffer() {
       }
       break;
 
+    // SHOOZ: slots past the installed banks are refused. Stock wrote them,
+    // and on a smaller EEPROM the address wrapped onto bank 0.
     case 0x21:
-      WritePatch((sysex_rx_buffer_[0] << 8) | (sysex_rx_buffer_[1]));
-      success = 1;
-      break;
-
     case 0x22:
-      WriteSequence((sysex_rx_buffer_[0] << 8) | (sysex_rx_buffer_[1]));
-      success = 1;
+      {
+        uint16_t slot = (sysex_rx_buffer_[0] << 8) | (sysex_rx_buffer_[1]);
+        // Patches and sequences have the same number of slots.
+        success = slot < size<Patch>();
+        if (success) {
+          if (sysex_rx_command_[0] == 0x21) {
+            WritePatch(slot);
+          } else {
+            WriteSequence(slot);
+          }
+        }
+      }
       break;
 
     case 0x31:
@@ -475,7 +490,10 @@ void Storage::SysExReceive(uint8_t sysex_rx_byte) {
         sysex_rx_bytes_received_++;
         sysex_rx_state_ = RECEIVING_OLD_HEADER;
       } else {
-        sysex_rx_state_ = RECEIVING_FOOTER;
+        // SHOOZ: not for us; ignore everything up to the next F0. Stock went
+        // to RECEIVING_FOOTER, which re-ran the *previous* command on F7
+        // when its checksum byte matched (always, after a request).
+        sysex_rx_state_ = RECEPTION_ERROR;
       }
       break;
 
@@ -488,7 +506,7 @@ void Storage::SysExReceive(uint8_t sysex_rx_byte) {
           sysex_rx_bytes_received_ = 0;
         }
       } else {
-        sysex_rx_state_ = RECEIVING_FOOTER;
+        sysex_rx_state_ = RECEPTION_ERROR;  // SHOOZ, see above.
       }
       break;
 

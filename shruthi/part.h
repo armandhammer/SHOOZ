@@ -74,8 +74,19 @@ class Part {
   static void SetScaledParameter(uint8_t index, uint8_t value,
       bool user_initiated);
   static inline uint8_t GetParameter(uint8_t offset) {
-    return data_access_byte_[offset + 1];
+    return *parameter_address(offset);
   }
+  // SHOOZ: RAM address of the parameter at |offset| (a PatchParameter,
+  // SequencerParameter or SystemParameter). Stock reached it as
+  // data_access_byte_[offset + 1], which relied on the compiler placing the
+  // patch, sequencer and system settings back to back without padding.
+  static uint8_t* parameter_address(uint8_t offset);
+  // SHOOZ: clamps every patch, sequencer and system byte described by the
+  // parameter table to its range. Called on everything loaded from SysEx
+  // or EEPROM: an out-of-range oscillator shape, LFO waveform or
+  // modulation source/destination indexes past a table (for the shape, a
+  // jump to a random address).
+  static void SanitizeParameters();
   static void ResetPatch();
   static void ResetSequencerSettings();
   static void ResetSequence();
@@ -213,14 +224,12 @@ class Part {
   static uint16_t Tune(uint8_t note);
   static uint8_t step_duration();
    
-  static uint8_t data_access_byte_[1];
   static Patch patch_;
   static SequencerSettings sequencer_settings_;
   static SystemSettings system_settings_;
-  // SHOOZ: envelope curve presets of the current patch (0-7). Defined right
-  // after system_settings_ so that they are reachable as parameter offsets
-  // PRM_ENV_CURVE_1/2 (see data_access_byte_). Saved in the patch's spare
-  // bits by Patch::PrepareForWrite().
+  // SHOOZ: envelope curve presets of the current patch (0-7), parameter
+  // offsets PRM_ENV_CURVE_1/2. Saved in the patch's spare bits by
+  // Patch::PrepareForWrite().
   static uint8_t env_curve_[kNumEnvelopes];
   static bool dirty_;
   

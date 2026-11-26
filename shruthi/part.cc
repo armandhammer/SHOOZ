@@ -39,11 +39,10 @@ namespace shruthi {
 Part part;
 
 /* <static> */
-uint8_t Part::data_access_byte_[1];
 Patch Part::patch_;
 SequencerSettings Part::sequencer_settings_;
 SystemSettings Part::system_settings_;
-uint8_t Part::env_curve_[kNumEnvelopes];  // Must follow system_settings_.
+uint8_t Part::env_curve_[kNumEnvelopes];
 bool Part::dirty_;
 
 Voice Part::voice_;
@@ -85,6 +84,7 @@ void Part::Init() {
     ResetSystemSettings();
     system_settings_.EepromSave();
   }
+  SanitizeParameters();
   Reset();
   pressed_keys_.Init();
   mono_allocator_.Init();
@@ -726,15 +726,51 @@ void Part::SetScaledParameter(
 }
 
 /* static */
+uint8_t* Part::parameter_address(uint8_t offset) {
+  uint8_t* base;
+  if (offset >= PRM_ENV_CURVE_1) {
+    base = env_curve_;
+    offset -= PRM_ENV_CURVE_1;
+  } else if (offset >= PRM_SYS_OCTAVE) {
+    base = (uint8_t*)&system_settings_;
+    offset -= PRM_SYS_OCTAVE;
+  } else if (offset >= PRM_SEQ_MODE) {
+    base = (uint8_t*)&sequencer_settings_;
+    offset -= PRM_SEQ_MODE;
+  } else {
+    base = (uint8_t*)&patch_;
+  }
+  return base + offset;
+}
+
+/* static */
+void Part::SanitizeParameters() {
+  for (uint8_t offset = 0; offset < PRM_ENV_CURVE_1; ++offset) {
+    // Cutoff/resonance 2 and the filter modes mean different things (with
+    // different ranges) on each filter board; they index no table.
+    if (offset == PRM_FILTER_CUTOFF_2 || offset == PRM_FILTER_RESONANCE_2 ||
+        offset == PRM_FILTER_MODE_1 || offset == PRM_FILTER_MODE_2) {
+      continue;
+    }
+    uint8_t index = parameter_manager.at_offset(offset);
+    if (index != 0xff) {
+      uint8_t* address = parameter_address(offset);
+      *address = parameter_manager.parameter(index).Clamp(*address);
+    }
+  }
+}
+
+/* static */
 void Part::SetParameter(
     uint8_t parameter_index,
     uint8_t offset,
     uint8_t value,
     bool user_initiated) {
-  if (data_access_byte_[offset + 1] == value) {
+  uint8_t* address = parameter_address(offset);
+  if (*address == value) {
     return;
   }
-  data_access_byte_[offset + 1] = value;
+  *address = value;
   if (offset >= PRM_ENV_ATTACK_1 && offset <= PRM_LFO_RETRIGGER_2) {
     UpdateModulationRates();
   } else if (offset == PRM_ARP_DIRECTION) {

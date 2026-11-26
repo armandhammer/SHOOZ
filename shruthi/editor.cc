@@ -1065,6 +1065,7 @@ uint8_t Editor::KnobIndexToParameterId(uint8_t knob_index) {
         return PRM_FILTER_ENV;
     }
     subpage_ = 0;
+    return 0xff;  // SHOOZ: stock fell off the end (unreachable: 4 knobs).
   } else {
     return page_definition_[current_page_].first_parameter_index + \
         knob_index;

@@ -131,12 +131,16 @@ class Storage {
     LoadBytes<Patch>(destination, 68, 8, slot);
   }
 
+  // Part::SanitizeParameters(), out of line (part.h includes this file).
+  static void SanitizeParameters();
+
   template<typename T>
   static uint8_t AcceptData(T* ptr, uint8_t* data) {
     uint8_t success = ptr->CheckBuffer(data);
     if (success) {
       memcpy(ptr->saved_data(), data, StorageConfiguration<T>::size);
       ptr->Update();
+      SanitizeParameters();
     }
     return success;
   }
@@ -154,7 +158,7 @@ class Storage {
     } else {
       WriteExternal(
           (uint8_t *)(ptr->saved_data()),
-          (uint16_t)(address<T>(slot)),
+          (uint16_t)(uintptr_t)(address<T>(slot)),
           StorageConfiguration<T>::size);
     }
   }
@@ -168,7 +172,7 @@ class Storage {
     } else {
       ReadExternal(
           load_buffer_,
-          (uint16_t)(address<T>(slot)),
+          (uint16_t)(uintptr_t)(address<T>(slot)),
           StorageConfiguration<T>::size);
     }
     AcceptData(ptr, load_buffer_);
@@ -183,7 +187,7 @@ class Storage {
     if (slot < StorageConfiguration<T>::num_internal) {
       eeprom_read_block(destination, address<T>(slot) + offset, size);
     } else {
-      ReadExternal(destination, (uint16_t)(address<T>(slot)) + offset, size);
+      ReadExternal(destination, (uint16_t)(uintptr_t)(address<T>(slot)) + offset, size);
     }
   }
 

@@ -48,7 +48,9 @@ class SystemSettings {
   
   void EepromSave() const;
   uint8_t EepromLoad();
-};
+// SHOOZ: packed so the host-native test build has the AVR's 15-byte layout
+// (EEPROM image, SysEx 0x04 payload); a no-op on the AVR.
+} __attribute__((packed));
 
 enum FilterBoard {
   FILTER_BOARD_LPF,

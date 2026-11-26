@@ -517,6 +517,12 @@ void Oscillator::RenderPolyBlepCSaw(uint8_t* buffer) {
       phase.integral >= pwm_phase && !high) {
       high = true;
       CALCULATE_BLEP_INDEX(phase.integral-pwm_phase, quotient, quotient_shifts, blep_index)
+      // SHOOZ: with a small (or zero) parameter the edge is detected a
+      // sample late, more than one increment past pwm_phase, and the index
+      // ran past the 128-byte table.
+      if (blep_index > 127) {
+        blep_index = 127;
+      }
       this_sample += U8U8MulShift8(
         ResourcesManager::Lookup<uint8_t, uint8_t>(wav_res_blep_table, blep_index),
         parameter_ /* scale blep to size of edge */);
@@ -657,8 +663,14 @@ void Oscillator::RenderFilteredNoise(uint8_t* buffer) {
 
 // The position is freely determined by the parameter
 void Oscillator::RenderWavequence(uint8_t* buffer) {
+  // SHOOZ: wav_res_waves holds 127 waves (0-126). Stock played position
+  // 127 from the 129 bytes after the table.
+  uint8_t position = parameter_;
+  if (position > 126) {
+    position = 126;
+  }
   const prog_uint8_t* wave = wav_res_waves + U8U8Mul(
-      parameter_,
+      position,
       129);
   BEGIN_SAMPLE_LOOP
     UPDATE_PHASE

@@ -46,6 +46,11 @@ uint8_t Parameter::Scale(uint8_t value_7bits) const {
         scaled_value = 240;
       }
       scaled_value &= 0xfe;
+      // SHOOZ: below 40 means external clock; keep it at the range minimum
+      // (39) instead of the out-of-range 38 the rounding gave.
+      if (scaled_value < 40) {
+        scaled_value = 39;
+      }
     }
   }
   return scaled_value;
@@ -914,7 +919,8 @@ uint8_t ParameterManager::cc_to_id_[128];
 
 /* static */
 void ParameterManager::Init() {
-  memset(offset_to_id_, 0xff, 192);
+  // SHOOZ: was 192, which wrote 32 bytes past the 160-byte table.
+  memset(offset_to_id_, 0xff, sizeof(offset_to_id_));
   memset(cc_to_id_, 0xff, 128);
   for (uint8_t i = 0; i < kNumParameters; ++i) {
     const Parameter& p = parameter(i);
