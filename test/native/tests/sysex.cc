@@ -56,11 +56,22 @@ TEST(SysExVersionReply) {
   SysExReply r;
   CHECK(native_env::Request(SysEx(0x1c), 0x0c, &r));
   CHECK(r.checksum_ok);
-  CHECK_EQ(r.data.size(), 8);
+  CHECK_EQ(r.data.size(), 11);
   CHECK_EQ(r.data[2], kShoozFamily);
   CHECK_EQ(r.data[3], kShoozVersion);
   CHECK_EQ(r.data[4], WAVEFORM_LAST);
   CHECK_EQ(r.data[5], kPatchLayoutVersion);
+  // Filter calibration: defaults, then what NRPN set.
+  CHECK_EQ(r.data[8], 0);
+  CHECK_EQ(r.data[9], 0);
+  CHECK_EQ(r.data[10], 127);
+  native_env::Nrpn(0, PRM_FILTER_PROFILE, FILTER_PROFILE_POLIVOKS);
+  native_env::Nrpn(0, PRM_FILTER_CUTOFF_OFFSET, 0xf6);  // -10
+  native_env::Nrpn(0, PRM_FILTER_RESONANCE_MAX, 99);
+  CHECK(native_env::Request(SysEx(0x1c), 0x0c, &r));
+  CHECK_EQ(r.data[8], FILTER_PROFILE_POLIVOKS);
+  CHECK_EQ(r.data[9], 0xf6);
+  CHECK_EQ(r.data[10], 99);
 }
 
 TEST(SysExNumBanksReply) {

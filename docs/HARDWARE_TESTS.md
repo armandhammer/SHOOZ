@@ -126,6 +126,8 @@ no filter envelope or LFO, cutoff around 60.
 - [ ] **Matching units:** play the same patch on two Shruthis and turn
       `cofs` on one until the cutoffs match. Note the value per unit.
 - [ ] `rmax 0` removes resonance entirely; `rmax 64` gives about half.
+- [ ] `shooz_sysex.py ... version` ends with a `filter cal:` line showing
+      the page's values.
 - [ ] Power-cycle without saving: the page goes back to the saved values.
       Save, power-cycle: the new values stay.
 - [ ] Rollback check (optional): flash stock YAM: it boots normally and

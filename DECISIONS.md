@@ -82,9 +82,14 @@ Flash after these fixes: 676 B free (gate 256), static RAM 261 B free.
 - **Not applied specially for the DSP and delay boards**: the DSP board
   reads cutoff/resonance over UART (unaffected); on the delay board the
   resonance CV is feedback, so leave the profile `off` there.
+- **The version reply (0x1c → 0x0c) grows from 8 to 11 bytes** and ends
+  with the calibration (profile, cutoff offset, resonance max), so an
+  editor can read it: no other message carries it (offsets ≥ 128 aren't
+  echoed, and 0x04 stays stock). Editors that read only the first 2 bytes
+  (stock) or 8 bytes (SHOOZ 0.1 drafts) are unaffected. +22 B.
 - **The user wavetable stays.** S3 fits without dropping it.
 
-Size: +370 B flash (306 B free, gate 256), +14 B static RAM (247 B free).
+Size: +392 B flash (284 B free, gate 256), +14 B static RAM (247 B free).
 Strings: the profile names go between the start page names and the raga
 names, which are indexed by value from `equal` (appending them after
 `equal` shifted the raga list; the parameter export diff caught it, and
