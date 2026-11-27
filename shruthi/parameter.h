@@ -23,6 +23,7 @@
 #include "avrlib/base.h"
 #include "shruthi/resources.h"
 #include "shruthi/shruthi.h"
+#include "shruthi/system_settings.h"
 
 namespace shruthi {
 
@@ -59,6 +60,7 @@ enum Unit {
   UNIT_FILTER_4P_MODE,
   UNIT_FILTER_4P_FLAVOUR,
   UNIT_FILTER_SP_MODE,
+  UNIT_FILTER_PROFILE,
   UNIT_LAST
 };
 
@@ -82,7 +84,9 @@ struct Parameter {
 };
 
 typedef Parameter PROGMEM prog_Parameter;
-const uint8_t kNumParameters = 94;
+const uint8_t kNumParameters = 98;
+// Patch, sequencer and system settings, env curves, filter calibration.
+const uint8_t kNumOffsets = PRM_LAST;
 
 class ParameterManager {
  public:
@@ -92,7 +96,7 @@ class ParameterManager {
   static const Parameter& parameter(uint8_t index);
   static uint8_t for_cc(uint8_t cc) { return cc_to_id_[cc & 0x7f]; }
   static uint8_t at_offset(uint8_t offset) {
-    return offset < 160 ? offset_to_id_[offset] : 0xff;
+    return offset < kNumOffsets ? offset_to_id_[offset] : 0xff;
   }
 
  private:
@@ -100,7 +104,7 @@ class ParameterManager {
   static Parameter dummy_parameter_;
   static uint8_t cached_index_;
 
-  static uint8_t offset_to_id_[160];
+  static uint8_t offset_to_id_[kNumOffsets];
   static uint8_t cc_to_id_[128];
   
   DISALLOW_COPY_AND_ASSIGN(ParameterManager);

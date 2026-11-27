@@ -14,8 +14,9 @@ hi/lo nibbles> <checksum hi> <checksum lo> F7, checksum = sum(payload) & 0xff.
 
 The version reply (0x0c) is 2 bytes on stock YAM. SHOOZ appends: family
 (2 = SHOOZ), SHOOZ version (0xMm), number of oscillator shapes, patch
-layout, worst-case free stack since boot (bytes, max 255) and audio
-glitches (buffer underruns) since boot.
+layout, worst-case free stack since boot (bytes, max 255), audio
+glitches (buffer underruns) since boot, then the filter calibration:
+profile, cutoff offset (signed) and resonance max.
 """
 
 import argparse
@@ -66,6 +67,13 @@ def describe_version(payload):
       stack, '' if stack >= 96 else '  << below the 96 B gate'))
   lines.append('audio glitches since boot: %d%s' % (
       glitches, '+' if glitches == 255 else ''))
+  if len(payload) >= 11:
+    profile, offset, resonance_max = payload[8:11]
+    names = ['off', 'cs80', 'ir31', 'pvk', 'smr4']
+    lines.append('filter cal: profile %s, cutoff offset %+d, resonance max %d'
+                 % (names[profile] if profile < len(names) else profile,
+                    offset - 256 if offset >= 128 else offset,
+                    resonance_max))
   return '\n'.join(lines)
 
 
@@ -101,6 +109,9 @@ def selftest():
   text = describe(*decode(encode(0x0c, 0, [1, 0, 2, 0x01, 43, 1, 180, 3])))
   assert 'SHOOZ, version 0.1' in text and '180 B' in text, text
   assert 'glitches since boot: 3' in text, text
+  text = describe(*decode(encode(
+      0x0c, 0, [1, 0, 2, 0x01, 43, 1, 180, 3, 2, 0xf6, 99])))
+  assert 'profile ir31, cutoff offset -10, resonance max 99' in text, text
   # A stock reply.
   assert 'stock YAM' in describe(*decode(encode(0x0c, 0, [1, 0])))
   # A patch with curves 3 and 7.

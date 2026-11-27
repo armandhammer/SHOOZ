@@ -129,15 +129,15 @@ PageDefinition Editor::page_definition_[] = {
     STR_RES_STEP_SEQUENCER, STEP_SEQUENCER, 52, LED_5_MASK },
 
   /* PAGE_SYS_KBD */ { PAGE_SYS_MIDI, GROUP_SYS,
-    PAGE_SYS_DISPLAY, PAGE_SYS_MIDI,
+    PAGE_SYS_FILTER, PAGE_SYS_MIDI,
     STR_RES_KEYBOARD, PARAMETER_EDITOR, 44, LED_6_MASK },
 
   /* PAGE_SYS_MIDI */ { PAGE_SYS_DISPLAY, GROUP_SYS,
     PAGE_SYS_KBD, PAGE_SYS_DISPLAY,
     STR_RES_MIDI, PARAMETER_EDITOR, 48, LED_6_MASK },
 
-  /* PAGE_SYS_DISPLAY */ { PAGE_SYS_KBD, GROUP_SYS,
-    PAGE_SYS_MIDI, PAGE_SYS_KBD,
+  /* PAGE_SYS_DISPLAY */ { PAGE_SYS_FILTER, GROUP_SYS,
+    PAGE_SYS_MIDI, PAGE_SYS_FILTER,
     STR_RES_SYSTEM, PARAMETER_EDITOR, 52, LED_6_MASK },
 
   /* PAGE_LOAD_SAVE */ { PAGE_LOAD_SAVE, GROUP_LOAD_SAVE,
@@ -155,6 +155,10 @@ PageDefinition Editor::page_definition_[] = {
   /* PAGE_MOD_CURVES (SHOOZ) */ { PAGE_MOD_ENV_1, GROUP_MOD_SOURCES,
     PAGE_MOD_LFO_2, PAGE_MOD_MATRIX,
     STR_RES_ENV_CURVES, PARAMETER_EDITOR, 90, LED_4_MASK | LED_5_MASK },
+
+  /* PAGE_SYS_FILTER (SHOOZ) */ { PAGE_SYS_KBD, GROUP_SYS,
+    PAGE_SYS_DISPLAY, PAGE_SYS_KBD,
+    STR_RES_FILTER_CAL, PARAMETER_EDITOR, 94, LED_6_MASK },
 };
 
 /* <static> */
@@ -321,6 +325,9 @@ void Editor::RandomizeSequence() {
 /* static */
 void Editor::SaveSystemSettings() {
   part.mutable_system_settings()->EepromSave();
+  // SHOOZ: saved only here, not on every SystemSettings save (the last
+  // patch number is saved on each patch load).
+  filter_calibration.EepromSave();
 }
 
 /* static */
@@ -412,7 +419,8 @@ void Editor::OnSwitch(const Event& event) {
       : EDITOR_MODE_SEQUENCE;
     JumpToPageGroup(last_visited_group_[editor_mode_]);
   } else if (id == SWITCH_LOAD_SAVE) {
-    if (current_page_ >= PAGE_SYS_KBD && current_page_ <= PAGE_SYS_DISPLAY) {
+    if ((current_page_ >= PAGE_SYS_KBD && current_page_ <= PAGE_SYS_DISPLAY) ||
+        current_page_ == PAGE_SYS_FILTER) {
       ConfirmPageSettings confirm_save_system_settings;
       confirm_save_system_settings.text = STR_RES_SAVE_MIDI_KBD;
       confirm_save_system_settings.return_group = GROUP_SYS;

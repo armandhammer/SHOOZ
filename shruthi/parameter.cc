@@ -164,6 +164,7 @@ static const prog_uint16_t units_definitions[UNIT_LAST]
   STR_RES_LP4,     // UNIT_FILTER_4P_MODE
   STR_RES_LIQUID,  // UNIT_FILTER_4P_FLAVOUR
   STR_RES_LP,      // UNIT_FILTER_SP_MODE
+  STR_RES____OFF,  // UNIT_FILTER_PROFILE
 };  // UNIT_LAST
 
 static const prog_char arp_pattern_prefix[4] PROGMEM = {
@@ -898,6 +899,32 @@ static const prog_Parameter parameters[kNumParameters] PROGMEM = {
     0, 7,
     { 0, 0 },
     STR_RES_CRV2, STR_RES_ENV2_CURVE },
+
+  // 94-97 (SHOOZ): filter calibration, on the system page "filter cal".
+  // 97 repeats 96 so that knob 4 also edits it and its column stays blank.
+  { PRM_FILTER_PROFILE,
+    UNIT_FILTER_PROFILE,
+    0, FILTER_PROFILE_LAST - 1,
+    { 0, 0 },
+    STR_RES_PROF, STR_RES_PROFILE },
+
+  { PRM_FILTER_CUTOFF_OFFSET,
+    UNIT_INT8,
+    -63, 63,
+    { 0, 0 },
+    STR_RES_COFS, STR_RES_CUTOFF },
+
+  { PRM_FILTER_RESONANCE_MAX,
+    UNIT_UINT8,
+    0, 127,
+    { 0, 0 },
+    STR_RES_RMAX, STR_RES_RESONANCE },
+
+  { PRM_FILTER_RESONANCE_MAX,
+    UNIT_UINT8,
+    0, 127,
+    { 0, 0 },
+    STR_RES_RMAX, STR_RES_RESONANCE },
 };
 
 /* static */
@@ -912,7 +939,7 @@ Parameter ParameterManager::dummy_parameter_ = {
 uint8_t ParameterManager::cached_index_ = 0xff;
 
 /* static */
-uint8_t ParameterManager::offset_to_id_[160];
+uint8_t ParameterManager::offset_to_id_[kNumOffsets];
 
 /* static */
 uint8_t ParameterManager::cc_to_id_[128];
@@ -924,7 +951,7 @@ void ParameterManager::Init() {
   memset(cc_to_id_, 0xff, 128);
   for (uint8_t i = 0; i < kNumParameters; ++i) {
     const Parameter& p = parameter(i);
-    if (p.offset < 160) {
+    if (p.offset < kNumOffsets) {
       offset_to_id_[p.offset] = i;
     }
     if (p.midi_cc[0]) {

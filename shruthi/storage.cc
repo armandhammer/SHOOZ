@@ -296,6 +296,9 @@ void Storage::SysExAcceptBuffer() {
           sizeof(SystemSettings));
       part.SanitizeParameters();
       part.mutable_system_settings()->EepromSave();
+      // SHOOZ: an editor's "save system settings" also saves the filter
+      // calibration it set by NRPN (as the front-panel system save does).
+      filter_calibration.EepromSave();
       success = 1;
       break;
 
@@ -391,8 +394,10 @@ void Storage::SysExAcceptBuffer() {
       {
         // Bytes 0-1 are the stock reply (ROM version). SHOOZ appends: family
         // (2), SHOOZ version, number of oscillator shapes, patch layout,
-        // worst-case free stack and audio glitches since boot.
-        uint8_t version[8];
+        // worst-case free stack and audio glitches since boot, then the
+        // filter calibration (profile, cutoff offset, resonance max), which
+        // no other message carries.
+        uint8_t version[11];
         version[0] = pgm_read_byte(waveform_table[WAV_RES_VERSION]);
         version[1] = pgm_read_byte(waveform_table[WAV_RES_VERSION] + 1);
         version[2] = kShoozFamily;
@@ -401,6 +406,7 @@ void Storage::SysExAcceptBuffer() {
         version[5] = kPatchLayoutVersion;
         version[6] = Diagnostics::FreeStack();
         version[7] = Diagnostics::glitches();
+        memcpy(version + 8, &filter_calibration.profile, 3);
         Storage::SysExDumpBuffer(version, 0x0c, 0, sizeof(version));
       }
       break;

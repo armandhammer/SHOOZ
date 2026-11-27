@@ -728,7 +728,10 @@ void Part::SetScaledParameter(
 /* static */
 uint8_t* Part::parameter_address(uint8_t offset) {
   uint8_t* base;
-  if (offset >= PRM_ENV_CURVE_1) {
+  if (offset >= PRM_FILTER_PROFILE) {
+    base = &filter_calibration.profile;
+    offset -= PRM_FILTER_PROFILE;
+  } else if (offset >= PRM_ENV_CURVE_1) {
     base = env_curve_;
     offset -= PRM_ENV_CURVE_1;
   } else if (offset >= PRM_SYS_OCTAVE) {
@@ -745,7 +748,7 @@ uint8_t* Part::parameter_address(uint8_t offset) {
 
 /* static */
 void Part::SanitizeParameters() {
-  for (uint8_t offset = 0; offset < PRM_ENV_CURVE_1; ++offset) {
+  for (uint8_t offset = 0; offset < PRM_LAST; ++offset) {
     // Cutoff/resonance 2 and the filter modes mean different things (with
     // different ranges) on each filter board; they index no table.
     if (offset == PRM_FILTER_CUTOFF_2 || offset == PRM_FILTER_RESONANCE_2 ||

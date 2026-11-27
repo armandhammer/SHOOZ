@@ -9,9 +9,9 @@ SHOOZ is the Shruthi sibling of [BAMBI](https://github.com/armandhammer/BAMBI)
 design synth, no groovebox features, and it has to work with any filter board
 (SMR4, CS-80, IR3109, Polivoks, …).
 
-> **Status:** wave 1 is implemented on branch `shooz-wave1` and builds,
-> with 944 B of flash free (YAM 0.05 had 960 B). It has **not been tested on
-> hardware** yet. See [docs/PLAN.md](docs/PLAN.md) and the checklist in
+> **Status:** wave 1 and the filter calibration page are implemented and
+> build, with 276 B of flash free (YAM 0.05 had 960 B). They have **not been
+> tested on hardware** yet. See [docs/PLAN.md](docs/PLAN.md) and the checklist in
 > [docs/HARDWARE_TESTS.md](docs/HARDWARE_TESTS.md).
 
 What SHOOZ adds to YAM 0.05:
@@ -25,6 +25,11 @@ What SHOOZ adds to YAM 0.05:
 - **Vintage drift:** a global `vint` setting (system → MIDI page). The pitch,
   oscillator 2 against oscillator 1, and the cutoff wander slowly, like an
   old analog monosynth.
+- **Filter calibration:** a 4th system page, **filter cal**, voices the
+  analog filter board per unit: a profile (`cs80`, `ir31`, `pvk`, `smr4`)
+  sets the resonance taper, level compensation and resonance → cutoff
+  shift; `cofs` offsets the cutoff so patches match across units; `rmax`
+  caps the resonance. `off` (the default) is stock.
 - **Diagnostics for editors:** the SysEx version reply identifies SHOOZ and
   reports the worst-case free stack and audio glitch count
   (`utils/shooz_sysex.py`).
