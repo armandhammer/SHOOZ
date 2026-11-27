@@ -296,6 +296,9 @@ void Storage::SysExAcceptBuffer() {
           sizeof(SystemSettings));
       part.SanitizeParameters();
       part.mutable_system_settings()->EepromSave();
+      // SHOOZ: an editor's "save system settings" also saves the filter
+      // calibration it set by NRPN (as the front-panel system save does).
+      filter_calibration.EepromSave();
       success = 1;
       break;
 

@@ -10,7 +10,7 @@ design synth, no groovebox features, and it has to work with any filter board
 (SMR4, CS-80, IR3109, Polivoks, …).
 
 > **Status:** wave 1 and the filter calibration page are implemented and
-> build, with 284 B of flash free (YAM 0.05 had 960 B). They have **not been
+> build, with 276 B of flash free (YAM 0.05 had 960 B). They have **not been
 > tested on hardware** yet. See [docs/PLAN.md](docs/PLAN.md) and the checklist in
 > [docs/HARDWARE_TESTS.md](docs/HARDWARE_TESTS.md).
 

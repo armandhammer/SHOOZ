@@ -267,3 +267,21 @@ TEST(FilterCalLabelsAndNeighbouringStrings) {
   uint8_t offset = parameter_manager.at_offset(PRM_FILTER_CUTOFF_OFFSET);
   CHECK(Label(offset, static_cast<uint8_t>(-63)) == "-63");
 }
+
+TEST(FilterCalSavedBySystemSettingsSysEx) {
+  // An editor sets the calibration by NRPN, then sends the system
+  // settings (0x04): both are saved, like the front-panel system save.
+  native_env::Boot();
+  native_env::Nrpn(0, PRM_FILTER_PROFILE, FILTER_PROFILE_CS80);
+  native_env::Nrpn(0, PRM_FILTER_RESONANCE_MAX, 77);
+  CHECK_EQ(native_eeprom[kFilterCalibrationEepromAddress], 0xff);
+  SystemSettings settings = part.system_settings();
+  native_env::MidiIn(native_env::SysEx(
+      0x04, 0, reinterpret_cast<const uint8_t*>(&settings), sizeof(settings)));
+  CHECK_EQ(native_eeprom[kFilterCalibrationEepromAddress],
+           kFilterCalibrationMagic);
+  SetCalibration(0, 0, 127);
+  part.Init();
+  CHECK_EQ(filter_calibration.profile, FILTER_PROFILE_CS80);
+  CHECK_EQ(filter_calibration.resonance_max, 77);
+}

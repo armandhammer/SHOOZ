@@ -167,7 +167,7 @@ tag `shooz-0.1` (pre-release) with the `.syx`.
 
 ## 4. Not in wave 1
 
-- **S3** filter-board profiles: done after wave 1 (+392 B flash, 284 B
+- **S3** filter-board profiles: done after wave 1 (+400 B flash, 276 B
   free; the version reply grows to 11 bytes).
 - **S5 rest:** dropping the user wavetable (−1,033 B RAM). Needs §5.3.
 - Front-panel echo of the curve edits (needs an NRPN MSB in `OnEdit`).

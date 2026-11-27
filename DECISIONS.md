@@ -75,8 +75,10 @@ Flash after these fixes: 676 B free (gate 256), static RAM 261 B free.
   rolling back to stock YAM is safe (stock never reads those bytes; it
   would misread a packed board byte). Full EEPROM backups (0x50) include
   it. A blank or foreign EEPROM reads as `off`.
-- **Saved only by the system page save**, not by every `SystemSettings`
-  save: with start page = last patch, that runs on every patch load.
+- **Saved by the system page save and by a received system dump (0x04)**,
+  not by every `SystemSettings` save: with start page = last patch, that
+  runs on every patch load. 0x04 is what an editor sends to save system
+  settings, so an editor that set the calibration by NRPN can save it.
 - **Parameter offsets 159–161** (NRPN MSB 1, LSB 31–33), after the
   envelope curves; no existing offset moves. `offset_to_id_` grows by 2 B.
 - **Not applied specially for the DSP and delay boards**: the DSP board
@@ -89,7 +91,7 @@ Flash after these fixes: 676 B free (gate 256), static RAM 261 B free.
   (stock) or 8 bytes (SHOOZ 0.1 drafts) are unaffected. +22 B.
 - **The user wavetable stays.** S3 fits without dropping it.
 
-Size: +392 B flash (284 B free, gate 256), +14 B static RAM (247 B free).
+Size: +400 B flash (276 B free, gate 256), +14 B static RAM (247 B free).
 Strings: the profile names go between the start page names and the raga
 names, which are indexed by value from `equal` (appending them after
 `equal` shifted the raga list; the parameter export diff caught it, and

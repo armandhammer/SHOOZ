@@ -128,6 +128,9 @@ no filter envelope or LFO, cutoff around 60.
 - [ ] `rmax 0` removes resonance entirely; `rmax 64` gives about half.
 - [ ] `shooz_sysex.py ... version` ends with a `filter cal:` line showing
       the page's values.
+- [ ] From SHED (Shruthi → System → Filter calibration): change the
+      profile, click **Save system settings to Shruthi**, power-cycle: the
+      page shows the new profile.
 - [ ] Power-cycle without saving: the page goes back to the saved values.
       Save, power-cycle: the new values stay.
 - [ ] Rollback check (optional): flash stock YAM: it boots normally and
