@@ -130,6 +130,26 @@ void DSPFilterBoardWrite() {
   }
 }
 
+// SHOOZ filter profiles, 4 bytes each:
+// 0: resonance -> cutoff, CV steps added at full resonance (the cutoff of
+//    an OTA ladder drops as its resonance rises);
+// 1: resonance taper, 0 = linear, 255 = 2x - x^2 (more of the knob travel
+//    goes below the self-oscillation point);
+// 2: level held back at zero resonance (n / 256), fading out toward full
+//    resonance, so the level stays even as a ladder filter loses passband;
+// 3: level pulled down at full resonance, for filters whose resonance
+//    gets loud.
+// Starting points chosen from how the original circuits behave; check
+// them by ear with docs/HARDWARE_TESTS.md.
+static const prog_uint8_t filter_profile_data[FILTER_PROFILE_LAST * 4]
+    PROGMEM = {
+  0, 0, 0, 0,          // off: stock
+  0, 48, 32, 0,        // cs80: 12 dB, gentle resonance, little loss
+  10, 160, 128, 0,     // ir3109: late, steep onset; ~6 dB loss
+  0, 0, 0, 80,         // polivoks: loud, screaming resonance
+  6, 96, 80, 0,        // smr4: 4-pole OTA ladder; ~4 dB loss
+};
+
 void FillAudioBuffer() {
   if (!audio_out.writable_block()) {
     return;
@@ -141,7 +161,24 @@ void FillAudioBuffer() {
   uint8_t gain = part.voice().vca();
   uint8_t cv_1 = part.voice().cv_1();
   uint8_t cv_2 = part.voice().cv_2();
-  vcf_cutoff_out.Write(part.voice().cutoff());
+
+  // SHOOZ: per-unit filter voicing (system page "filter cal"). Every step
+  // is the identity when its amount is 0, so profile "off" with cutoff
+  // offset 0 and resonance max 127 sends exactly the stock CVs.
+  const prog_uint8_t* profile =
+      filter_profile_data + (filter_calibration.profile << 2);
+  int16_t cutoff = part.voice().cutoff() + filter_calibration.cutoff_offset +
+      U8U8MulShift8(resonance, pgm_read_byte(profile));
+  vcf_cutoff_out.Write(cutoff < 0 ? 0 : (cutoff > 255 ? 255 : cutoff));
+  gain -= U8U8MulShift8(gain,
+      U8U8MulShift8(pgm_read_byte(profile + 2), ~resonance) +
+      U8U8MulShift8(pgm_read_byte(profile + 3), resonance));
+  resonance += U8U8MulShift8(
+      U8U8MulShift8(resonance, ~resonance),
+      pgm_read_byte(profile + 1));
+  resonance -= U8U8MulShift8(
+      resonance,
+      (127 - filter_calibration.resonance_max) << 1);
 
   if (filter_board == FILTER_BOARD_DSP) {
     DSPFilterBoardWrite();

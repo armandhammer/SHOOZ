@@ -30,6 +30,7 @@ const char* const kUnitNames[UNIT_LAST] = {
   "lfo_retrigger_mode", "start_page", "pause", "filter_board",
   "filter_1_mode", "filter_2_mode", "cv_operator", "fx_program",
   "filter_fx_mode", "filter_4p_mode", "filter_4p_flavour", "filter_sp_mode",
+  "filter_profile",
 };
 
 void PrintJsonString(const char* s) {
@@ -76,9 +77,12 @@ int main() {
          static_cast<int>(StorageConfiguration<SequencerSettings>::size),
          static_cast<int>(sizeof(SystemSettings)));
   printf("  \"offsets\": {\"seq\": %d, \"sys\": %d, \"env_curve_1\": %d, "
-         "\"env_curve_2\": %d, \"sys_vintage\": %d},\n",
+         "\"env_curve_2\": %d, \"sys_vintage\": %d, "
+         "\"filter_profile\": %d, \"filter_cutoff_offset\": %d, "
+         "\"filter_resonance_max\": %d},\n",
          PRM_SEQ_MODE, PRM_SYS_OCTAVE, PRM_ENV_CURVE_1, PRM_ENV_CURVE_2,
-         PRM_SYS_VINTAGE);
+         PRM_SYS_VINTAGE, PRM_FILTER_PROFILE, PRM_FILTER_CUTOFF_OFFSET,
+         PRM_FILTER_RESONANCE_MAX);
 
   // The init patch as it goes on the wire (PrepareForWrite packs the
   // filter modes and operators into bytes 86-90).

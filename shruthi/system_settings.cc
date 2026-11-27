@@ -40,6 +40,7 @@ uint8_t SystemSettings::EepromLoad() {
   uint8_t buffer[sizeof(SystemSettings) + 1];
   uint8_t* source = (uint8_t*)(0);
   uint8_t checksum = 0;
+  filter_calibration.EepromLoad();
   eeprom_read_block(buffer, source, sizeof(SystemSettings) + 1);
   for (int16_t i = 0; i < sizeof(SystemSettings) + 1; ++i) {
     checksum += buffer[i];
@@ -49,6 +50,26 @@ uint8_t SystemSettings::EepromLoad() {
     memcpy(data, buffer, sizeof(SystemSettings));
   }
   return checksum == 0;
+}
+
+// SHOOZ filter calibration. Values are clamped by Part::SanitizeParameters()
+// after loading; FillAudioBuffer() applies them.
+
+FilterCalibration filter_calibration;
+
+void FilterCalibration::EepromSave() {
+  magic = kFilterCalibrationMagic;
+  eeprom_write_block(this, (uint8_t*)(kFilterCalibrationEepromAddress), 4);
+}
+
+void FilterCalibration::EepromLoad() {
+  eeprom_read_block(this, (uint8_t*)(kFilterCalibrationEepromAddress), 4);
+  // A blank (0xff) or foreign EEPROM reads as "off".
+  if (magic != kFilterCalibrationMagic) {
+    profile = FILTER_PROFILE_OFF;
+    cutoff_offset = 0;
+    resonance_max = 127;
+  }
 }
 
 }  // shruthi

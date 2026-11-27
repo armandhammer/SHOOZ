@@ -31,7 +31,7 @@ TEST(ParamTableRangesAreSane) {
   native_env::Boot();
   for (uint8_t i = 0; i < kNumParameters; ++i) {
     const Parameter& p = parameter_manager.parameter(i);
-    CHECK_MSG(p.offset < 160, "parameter %d: offset %d", i, p.offset);
+    CHECK_MSG(p.offset < kNumOffsets, "parameter %d: offset %d", i, p.offset);
     CHECK_MSG(p.unit < UNIT_LAST, "parameter %d: unit %d", i, p.unit);
     if (p.unit == UNIT_INT8) {
       CHECK_MSG(static_cast<int8_t>(p.min_value) <=
@@ -54,7 +54,7 @@ TEST(ParamOffsetLookupIsConsistent) {
                 "offset %d maps to parameter %d", p.offset, id);
     }
   }
-  CHECK_EQ(parameter_manager.at_offset(160), 0xff);
+  CHECK_EQ(parameter_manager.at_offset(kNumOffsets), 0xff);
   CHECK_EQ(parameter_manager.at_offset(255), 0xff);
   // Name, sequencer-only extra data, op_data: no parameter.
   for (uint8_t o = 68; o < 84; ++o) CHECK_EQ(parameter_manager.at_offset(o), 0xff);

@@ -90,6 +90,11 @@ static const prog_char str_res_crv2[] PROGMEM = "crv2";
 static const prog_char str_res_env1_curve[] PROGMEM = "env1 curve";
 static const prog_char str_res_env2_curve[] PROGMEM = "env2 curve";
 static const prog_char str_res_env_curves[] PROGMEM = "env curves";
+static const prog_char str_res_prof[] PROGMEM = "prof";
+static const prog_char str_res_cofs[] PROGMEM = "cofs";
+static const prog_char str_res_rmax[] PROGMEM = "rmax";
+static const prog_char str_res_profile[] PROGMEM = "profile";
+static const prog_char str_res_filter_cal[] PROGMEM = "filter cal";
 static const prog_char str_res_oscillator_1[] PROGMEM = "oscillator 1";
 static const prog_char str_res_oscillator_2[] PROGMEM = "oscillator 2";
 static const prog_char str_res_mixer[] PROGMEM = "mixer";
@@ -426,6 +431,9 @@ static const prog_char str_res_dly[] PROGMEM = "dly";
 static const prog_char str_res_sp[] PROGMEM = "sp";
 static const prog_char str_res_splash[] PROGMEM = "splash";
 static const prog_char str_res_preset[] PROGMEM = "preset";
+static const prog_char str_res_cs80[] PROGMEM = "cs80";
+static const prog_char str_res_ir31[] PROGMEM = "ir31";
+static const prog_char str_res_smr4[] PROGMEM = "smr4";
 static const prog_char str_res_equal[] PROGMEM = "equal";
 static const prog_char str_res_just[] PROGMEM = "just";
 static const prog_char str_res_pythag[] PROGMEM = "pythag";
@@ -527,6 +535,11 @@ PROGMEM const prog_char* const string_table[] = {
   str_res_env1_curve,
   str_res_env2_curve,
   str_res_env_curves,
+  str_res_prof,
+  str_res_cofs,
+  str_res_rmax,
+  str_res_profile,
+  str_res_filter_cal,
   str_res_oscillator_1,
   str_res_oscillator_2,
   str_res_mixer,
@@ -893,6 +906,11 @@ PROGMEM const prog_char* const string_table[] = {
   str_res_splash,
   str_res_filter,
   str_res_preset,
+  str_res___off,
+  str_res_cs80,
+  str_res_ir31,
+  str_res_pvk,
+  str_res_smr4,
   str_res_equal,
   str_res_just,
   str_res_pythag,

@@ -85,6 +85,11 @@ crv2
 env1 curve
 env2 curve
 env curves
+prof
+cofs
+rmax
+profile
+filter cal
 oscillator 1
 oscillator 2
 mixer
@@ -472,6 +477,12 @@ sp
 splash
 filter
 preset
+
+off
+cs80
+ir31
+pvk
+smr4
 
 equal
 """

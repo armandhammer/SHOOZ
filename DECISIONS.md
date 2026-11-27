@@ -49,3 +49,43 @@ Newest last. Revisit any of them by opening an issue or reverting the commit.
 - **No LICENSE change.** SHOOZ stays GPLv3 like the upstream firmware.
 
 Flash after these fixes: 676 B free (gate 256), static RAM 261 B free.
+
+## 2026-11-26 — S3 filter calibration
+
+- **A per-unit "filter cal" system page instead of new board types.** The
+  board setting keeps meaning "how the board is wired"; the new profile
+  (`off`, `cs80`, `ir31`, `pvk`, `smr4`) means "how it responds". This
+  works whatever board setting the CS-80 and IR3109 boards run under
+  (still unknown, PLAN §5.2), and a profile can't break a board's CV
+  wiring. Profile `off` with `cofs 0`, `rmax 127` sends exactly the stock
+  CVs (native test `FilterCalOffSendsStockCvs`).
+- **What a profile does** (table `filter_profile_data` in `shruthi.cc`):
+  resonance taper (more knob travel below self-oscillation), level
+  compensation (ladder boards lose passband with resonance, so the level
+  is held back at low resonance; Polivoks gets louder, so it's pulled down
+  at full resonance), and a resonance → cutoff shift (OTA ladders sag).
+  The numbers are starting points from how the original circuits behave,
+  not measurements; HARDWARE_TESTS.md §S3 asks for a listening check.
+- **Two user trims on the same page**: `cofs` (cutoff offset −63..63 CV
+  steps) to match cutoffs across the four Shruthis so patches travel, and
+  `rmax` (resonance ceiling) to tame a screaming board.
+- **Stored in the last 4 bytes of the internal EEPROM** (2044–2047, with a
+  magic byte), not in `SystemSettings`. Its 15 bytes are all in use, and
+  the SysEx 0x04 payload and the stock EEPROM layout stay unchanged, so
+  rolling back to stock YAM is safe (stock never reads those bytes; it
+  would misread a packed board byte). Full EEPROM backups (0x50) include
+  it. A blank or foreign EEPROM reads as `off`.
+- **Saved only by the system page save**, not by every `SystemSettings`
+  save: with start page = last patch, that runs on every patch load.
+- **Parameter offsets 159–161** (NRPN MSB 1, LSB 31–33), after the
+  envelope curves; no existing offset moves. `offset_to_id_` grows by 2 B.
+- **Not applied specially for the DSP and delay boards**: the DSP board
+  reads cutoff/resonance over UART (unaffected); on the delay board the
+  resonance CV is feedback, so leave the profile `off` there.
+- **The user wavetable stays.** S3 fits without dropping it.
+
+Size: +370 B flash (306 B free, gate 256), +14 B static RAM (247 B free).
+Strings: the profile names go between the start page names and the raga
+names, which are indexed by value from `equal` (appending them after
+`equal` shifted the raga list; the parameter export diff caught it, and
+`FilterCalLabelsAndNeighbouringStrings` now pins it).

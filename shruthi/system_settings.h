@@ -113,8 +113,51 @@ enum SystemParameter {
   // SHOOZ: per-patch envelope curves, stored right after SystemSettings
   // (Part::env_curve_).
   PRM_ENV_CURVE_1,
-  PRM_ENV_CURVE_2
+  PRM_ENV_CURVE_2,
+
+  // SHOOZ: filter calibration (FilterCalibration, below).
+  PRM_FILTER_PROFILE,
+  PRM_FILTER_CUTOFF_OFFSET,
+  PRM_FILTER_RESONANCE_MAX,
+  PRM_LAST
 };
+
+// SHOOZ: voicing of the analog filter board, per unit (not per patch).
+// The board setting says how the board is wired (which CVs it reads); the
+// profile says how it responds: resonance taper, passband level loss as the
+// resonance rises, and the cutoff shift that comes with resonance. Profile
+// 0 leaves the CVs exactly as stock.
+enum FilterProfile {
+  FILTER_PROFILE_OFF,
+  FILTER_PROFILE_CS80,
+  FILTER_PROFILE_IR3109,
+  FILTER_PROFILE_POLIVOKS,
+  FILTER_PROFILE_SMR4,
+  FILTER_PROFILE_LAST
+};
+
+// Applied in FillAudioBuffer() (shruthi.cc), before the board-specific
+// processing. Stored in the last 4 bytes of the internal EEPROM, which
+// stock firmware never uses (patches and sequences end at byte 2000), so
+// going back to stock YAM is safe. Not part of the 15-byte SystemSettings
+// block (SysEx 0x04 stays stock); a full EEPROM backup (0x50) includes it.
+// Saved by the system page save only (Editor::SaveSystemSettings).
+class FilterCalibration {
+ public:
+  uint8_t magic;  // kFilterCalibrationMagic once saved
+  // Parameters PRM_FILTER_PROFILE.. point here.
+  uint8_t profile;
+  int8_t cutoff_offset;  // -63..63, in 8-bit cutoff CV steps
+  uint8_t resonance_max;  // 0..127, 127 = full range
+
+  void EepromSave();
+  void EepromLoad();
+} __attribute__((packed));
+
+static const uint16_t kFilterCalibrationEepromAddress = 2044;  // 2 KB - 4
+static const uint8_t kFilterCalibrationMagic = 0xc5;
+
+extern FilterCalibration filter_calibration;
 
 }  // namespace shruthi
 

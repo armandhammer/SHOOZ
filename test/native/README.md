@@ -40,6 +40,7 @@ code are the real ones.
 | `tests/parameters.cc` | parameter table ranges, offset/CC maps, Scale/Increment/Clamp, NRPN for every parameter, curves NRPN, tempo clock accuracy |
 | `tests/sysex.cc` | version/bank replies, patch round trip, `'&'` curve marker, checksums, truncation, foreign messages, write/load slots, bulk blocks, sanitizing |
 | `tests/voice.cc` | note on/off, every oscillator shape, extremes, curves on the VCA, vintage drift bounds (cutoff and pitch), every filter-board CV path |
+| `tests/filter_cal.cc` | S3 filter calibration: stock CVs when off, every profile's taper/level/cutoff bounds, cutoff offset clipping, resonance max, NRPN ranges, EEPROM save/load/clamping, value labels and neighbouring string lists |
 | `tests/fuzz.cc` | random channel messages, random NRPN/SysEx payloads, raw byte garbage |
 
 ## Parameter export for SHED

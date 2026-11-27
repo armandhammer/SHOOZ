@@ -15,7 +15,10 @@
 - **S2** envelope curves, per patch, 8 presets (decision §5.1: option A)
 
 Deferred: **S3** filter-board profiles and the rest of **S5** (dropping the
-user wavetable). Both still need your answers (§5).
+user wavetable). **Update:** S3 is done after wave 1 as a per-unit
+"filter cal" page that doesn't depend on the answer to §5.2 (see
+DECISIONS.md, "S3 filter calibration", and HARDWARE_TESTS.md §S3). The
+user wavetable stays.
 
 ## Status
 
@@ -164,8 +167,8 @@ tag `shooz-0.1` (pre-release) with the `.syx`.
 
 ## 4. Not in wave 1
 
-- **S3** filter-board profiles (~250–400 B). It fits now that M4 freed space,
-  but it needs §5.2.
+- **S3** filter-board profiles: done after wave 1 (+370 B flash, 306 B
+  free).
 - **S5 rest:** dropping the user wavetable (−1,033 B RAM). Needs §5.3.
 - Front-panel echo of the curve edits (needs an NRPN MSB in `OnEdit`).
 - SHED support for Shruthi/SHOOZ (protocol and parameter map).
@@ -175,6 +178,8 @@ tag `shooz-0.1` (pre-release) with the `.syx`.
 1. **Envelope curves storage:** decided 2026-11-26, **option A** (per patch,
    8 presets, `'&'` marker).
 2. **Filter boards** (S3): which board setting do your CS-80 and IR3109
-   boards run under now (LPF / SSM / 4PM / …)?
+   boards run under now (LPF / SSM / 4PM / …)? No longer blocks S3: the
+   profile is chosen separately from the board setting. Still useful to
+   know (HARDWARE_TESTS.md §S3 asks).
 3. **User wavetable:** is dropping it acceptable to free 1 KB of RAM? With
    944 B of flash free, this is now only needed if wave 2 runs short of RAM.
